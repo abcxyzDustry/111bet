@@ -614,7 +614,8 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 </div>
 
 <script>
-const API = 'http://localhost:3000';
+// ========== ĐÃ SỬA: Dùng window.location.origin thay vì localhost ==========
+const API = window.location.origin;
 let adminToken = localStorage.getItem('adminToken');
 let allUsers = [];
 let allSessions = [];
