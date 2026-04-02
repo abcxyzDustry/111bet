@@ -6,16 +6,20 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] }
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // ─── MongoDB Connection ───────────────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/gambling_research';
@@ -34,13 +38,13 @@ const userSchema = new mongoose.Schema({
   totalBets: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   isAdmin: { type: Boolean, default: false },
-  status: { type: String, default: 'active' } // active | banned
+  status: { type: String, default: 'active' }
 });
 
 const transactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   username: String,
-  type: String, // deposit | withdraw | bet_win | bet_loss
+  type: String,
   amount: Number,
   note: String,
   adminId: String,
@@ -49,7 +53,7 @@ const transactionSchema = new mongoose.Schema({
 
 const sessionSchema = new mongoose.Schema({
   sessionId: { type: String, default: uuidv4 },
-  gameType: String, // taixiu | baucua | xocdia
+  gameType: String,
   result: mongoose.Schema.Types.Mixed,
   bets: [mongoose.Schema.Types.Mixed],
   totalBetAmount: { type: Number, default: 0 },
@@ -143,7 +147,6 @@ app.post('/api/admin/login', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Create admin (internal use)
 app.post('/api/admin/create', async (req, res) => {
   try {
     const { username, password, secret } = req.body;
@@ -239,17 +242,13 @@ app.get('/api/admin/sessions', adminAuth, async (req, res) => {
 });
 
 // ─── Game State ───────────────────────────────────────────────────────────────
-// Each game runs in a loop with phases: BETTING (15s) → ROLLING (3s) → RESULT (5s)
 const games = {
   taixiu:  { phase: 'BETTING', countdown: 15, result: null, bets: {}, sessionId: uuidv4() },
   baucua:  { phase: 'BETTING', countdown: 15, result: null, bets: {}, sessionId: uuidv4() },
   xocdia:  { phase: 'BETTING', countdown: 15, result: null, bets: {}, sessionId: uuidv4() }
 };
 
-// HOUSE EDGE: Tài xỉu 70% house (biased RNG), others natural
 function rollTaixiu() {
-  // House advantage: manipulate result 70% of the time to favor house
-  // Collect bets data to determine most popular side, then set opposite
   const dice = [
     Math.floor(Math.random() * 6) + 1,
     Math.floor(Math.random() * 6) + 1,
@@ -265,19 +264,16 @@ function rollTaixiu() {
 }
 
 function rollTaixiuBiased(bets) {
-  // 70% house edge: pick the result that loses for most bettors
   const rand = Math.random();
   if (rand < 0.70) {
-    // Biased: favor house
     const taiTotal = Object.values(bets).reduce((s, b) => s + (b.tai || 0), 0);
     const xiuTotal = Object.values(bets).reduce((s, b) => s + (b.xiu || 0), 0);
-    // Roll until we get the less-bet side OR triple (triple = all lose)
     for (let attempt = 0; attempt < 20; attempt++) {
       const r = rollTaixiu();
-      if (r.isTriple) return r; // triple = house wins all
+      if (r.isTriple) return r;
       if (taiTotal > xiuTotal && r.side === 'xiu') return r;
       if (xiuTotal > taiTotal && r.side === 'tai') return r;
-      if (taiTotal === xiuTotal) return r; // equal, any result
+      if (taiTotal === xiuTotal) return r;
     }
   }
   return rollTaixiu();
@@ -295,42 +291,32 @@ function rollBaucua() {
 }
 
 function rollXocdia() {
-  // 4 coins: red (đỏ) or white (trắng)
   const coins = Array.from({ length: 4 }, () => Math.random() > 0.5 ? 'do' : 'trang');
   const redCount = coins.filter(c => c === 'do').length;
   const whiteCount = 4 - redCount;
-  let side;
-  if (redCount === 4) side = 'chan'; // 4 đỏ = chẵn
-  else if (whiteCount === 4) side = 'chan'; // 4 trắng = chẵn
-  else if (redCount === 2 && whiteCount === 2) side = 'chan'; // 2-2 = chẵn
-  else side = 'le'; // 3-1 or 1-3 = lẻ
-  // chan = 2 giống nhau pairs or 4 same
-  // Actually xoc dia: chan = even number of reds (0,2,4), le = odd (1,3)
   const evenRed = redCount % 2 === 0;
   return { coins, redCount, whiteCount, side: evenRed ? 'chan' : 'le' };
 }
 
-// ─── Payout Calculators ────────────────────────────────────────────────────────
 function calcTaixiuPayout(betChoice, betAmount, result) {
-  if (result.isTriple) return 0; // triple = all lose (house wins)
-  if (betChoice === result.side) return betAmount * 2; // 1:1 → return bet + win
+  if (result.isTriple) return 0;
+  if (betChoice === result.side) return betAmount * 2;
   return 0;
 }
 
 function calcBaucuaPayout(betChoice, betAmount, result) {
   const count = result.dice.filter(d => d === betChoice).length;
   if (count === 0) return 0;
-  return betAmount + betAmount * count; // 1 trúng = 1:1, 2 trúng = 1:2, 3 trúng = 1:3
+  return betAmount + betAmount * count;
 }
 
 function calcXocdiaPayout(betChoice, betAmount, result) {
-  if (betChoice === 'bongtrang' && result.whiteCount === 4) return betAmount * 13; // 4 trắng = 1:12
-  if (betChoice === 'bondo' && result.redCount === 4) return betAmount * 13;       // 4 đỏ = 1:12
+  if (betChoice === 'bongtrang' && result.whiteCount === 4) return betAmount * 13;
+  if (betChoice === 'bondo' && result.redCount === 4) return betAmount * 13;
   if ((betChoice === 'chan' || betChoice === 'le') && betChoice === result.side) return betAmount * 2;
   return 0;
 }
 
-// ─── Game Loop ─────────────────────────────────────────────────────────────────
 function startGameLoop(gameType) {
   const state = games[gameType];
 
@@ -346,7 +332,6 @@ function startGameLoop(gameType) {
     } else if (state.phase === 'ROLLING') {
       state.countdown--;
       if (state.countdown <= 0) {
-        // Determine result
         if (gameType === 'taixiu') state.result = rollTaixiuBiased(state.bets);
         else if (gameType === 'baucua') state.result = rollBaucua();
         else state.result = rollXocdia();
@@ -354,7 +339,6 @@ function startGameLoop(gameType) {
         state.phase = 'RESULT';
         state.countdown = 6;
 
-        // Process bets
         const sessionBets = [];
         let totalBet = 0, totalPayout = 0;
 
@@ -393,7 +377,6 @@ function startGameLoop(gameType) {
           }
         }
 
-        // Save session
         await GameSession.create({
           sessionId: state.sessionId, gameType, result: state.result,
           bets: sessionBets, totalBetAmount: totalBet, totalPayout,
@@ -431,7 +414,6 @@ io.on('connection', (socket) => {
       const decoded = jwt.verify(token, JWT_SECRET);
       socket.userId = decoded.id;
       socket.join(decoded.id);
-      // Send current game states
       for (const [gameType, state] of Object.entries(games)) {
         socket.emit(`${gameType}:state`, {
           phase: state.phase,
@@ -452,7 +434,6 @@ io.on('connection', (socket) => {
         return socket.emit('bet_error', { error: 'Phiên cược đã đóng' });
       }
 
-      // Validate bet amounts
       const user = await User.findById(userId);
       if (!user) return socket.emit('bet_error', { error: 'User not found' });
       if (user.status === 'banned') return socket.emit('bet_error', { error: 'Tài khoản bị khóa' });
@@ -462,11 +443,9 @@ io.on('connection', (socket) => {
       if (user.balance < totalBet) return socket.emit('bet_error', { error: 'Số dư không đủ' });
       if (totalBet > 50000000) return socket.emit('bet_error', { error: 'Vượt hạn mức cược tối đa' });
 
-      // Deduct balance
       user.balance -= totalBet;
       await user.save();
 
-      // Accumulate bets
       if (!state.bets[userId]) state.bets[userId] = {};
       for (const [choice, amount] of Object.entries(bets)) {
         state.bets[userId][choice] = (state.bets[userId][choice] || 0) + amount;
@@ -507,6 +486,15 @@ app.get('/api/history/:gameType', auth, async (req, res) => {
 app.get('/api/recent-results/:gameType', async (req, res) => {
   const sessions = await GameSession.find({ gameType: req.params.gameType }).sort({ createdAt: -1 }).limit(20);
   res.json(sessions.map(s => s.result));
+});
+
+// ─── Routes cho HTML ─────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 const PORT = process.env.PORT || 3000;
