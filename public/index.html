@@ -253,7 +253,7 @@ body::before {
 .coin.do { background: linear-gradient(145deg, #c0392b, #922b21); color: #fff; }
 .coin.trang { background: linear-gradient(145deg, #ecf0f1, #bdc3c7); color: #333; }
 
-/* Result overlay */
+/* Result banner */
 .result-banner {
   font-family: 'Chakra Petch', monospace;
   font-size: 32px;
@@ -928,13 +928,14 @@ body::before {
 </div>
 
 <script>
-const API = 'http://localhost:3000';
+// ========== ĐÃ SỬA: Dùng window.location.origin thay vì localhost ==========
+const API = window.location.origin;
 let socket = null;
 let token = localStorage.getItem('token');
 let balance = 0;
 let username = '';
 let selectedChip = 10000;
-let isAuthMode = 'login'; // login | register
+let isAuthMode = 'login';
 
 // Bet state per game
 const betState = {
@@ -966,9 +967,11 @@ window.onload = async () => {
   loadRecentResults();
 };
 
+// ========== ĐÃ SỬA: Socket.IO kết nối đến cùng domain ==========
 function connectSocket() {
-  socket = io(API);
+  socket = io();
   socket.on('connect', () => {
+    console.log('Socket connected');
     if (token) socket.emit('auth', token);
   });
 
