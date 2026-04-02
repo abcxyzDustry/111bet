@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel – VN Casino Research</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --card: #161616;
+  --border: #222;
+  --gold: #f5c518;
+  --gold2: #c8860a;
+  --text: #e0e0e0;
+  --muted: #666;
+  --red: #e74c3c;
+  --green: #27ae60;
+  --blue: #2980b9;
+  --sidebar-w: 220px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+}
+.sidebar-logo {
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--border);
+  font-family:'Chakra Petch',monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.sidebar-logo span { color: var(--red); }
+.sidebar-subtitle { font-size: 10px; color: var(--muted); font-family:'Be Vietnam Pro',sans-serif; margin-top: 2px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(245,197,24,0.05); }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+}
+.admin-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.admin-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.btn-logout-admin {
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.btn-logout-admin:hover { border-color: var(--red); color: var(--red); }
+
+/* ── Main ── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.top-bar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.page-title {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 600;
+}
+.refresh-btn {
+  background: rgba(245,197,24,0.1);
+  border: 1px solid rgba(245,197,24,0.3);
+  color: var(--gold);
+  border-radius: 6px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.refresh-btn:hover { background: rgba(245,197,24,0.2); }
+
+.content { padding: 24px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Stats Cards ── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+@media(max-width:1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Chakra Petch', monospace; margin-bottom: 8px; }
+.stat-value { font-size: 24px; font-weight: 700; font-family: 'Chakra Petch', monospace; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.green { color: var(--green); }
+.red { color: var(--red); }
+.gold { color: var(--gold); }
+.blue { color: var(--blue); }
+
+/* ── Table ── */
+.table-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.table-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.table-title {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { padding: 10px 16px; text-align: left; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Chakra Petch', monospace; border-bottom: 1px solid var(--border); }
+td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Chakra Petch', monospace;
+}
+.badge-active { background: rgba(39,174,96,0.2); color: #2ecc71; }
+.badge-banned { background: rgba(231,76,60,0.2); color: #e74c3c; }
+.badge-admin  { background: rgba(245,197,24,0.2); color: var(--gold); }
+.badge-deposit { background: rgba(39,174,96,0.15); color: #2ecc71; }
+.badge-withdraw { background: rgba(231,76,60,0.15); color: #e74c3c; }
+.badge-tai  { background: rgba(192,57,43,0.2); color: #e74c3c; }
+.badge-xiu  { background: rgba(41,128,185,0.2); color: #3498db; }
+.badge-bau  { background: rgba(230,126,34,0.2); color: #e67e22; }
+.badge-xoc  { background: rgba(142,68,173,0.2); color: #9b59b6; }
+
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  margin-right: 4px;
+  transition: all 0.2s;
+}
+.action-btn:hover { color: var(--text); border-color: var(--muted); }
+.action-btn.danger:hover { color: var(--red); border-color: var(--red); }
+.action-btn.success { border-color: rgba(39,174,96,0.4); color: var(--green); }
+.action-btn.success:hover { background: rgba(39,174,96,0.1); }
+
+/* ── Forms ── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group select {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border 0.2s;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+.form-group select option { background: var(--bg2); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-danger {
+  background: linear-gradient(135deg, #c0392b, #922b21);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── Login ── */
+.login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.login-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  width: 380px;
+}
+.login-logo {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 22px;
+  color: var(--gold);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.login-error { color: var(--red); font-size: 13px; margin-top: 10px; }
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 13px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+}
+
+/* ── Toast ── */
+.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
+.toast {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-top: 8px;
+  font-size: 13px;
+  min-width: 240px;
+  animation: toastIn 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.success { border-color: var(--green); }
+.toast.error { border-color: var(--red); }
+@keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+/* ── Session Chart area ── */
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.house-edge-bar { height: 10px; border-radius: 5px; background: var(--border); margin-top: 8px; overflow: hidden; }
+.house-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--red)); border-radius: 5px; transition: width 0.5s; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.hidden { display:none; }
+.modal-box { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:28px; width:400px; max-width:90vw; }
+.modal-title { font-family:'Chakra Petch',monospace; font-size:16px; color:var(--gold); margin-bottom:20px; }
+.modal-actions-row { display:flex; gap:10px; margin-top:16px; }
+.btn-cancel { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:10px 18px; cursor:pointer; font-family:inherit; }
+
+/* empty */
+.empty-row td { color:var(--muted); font-style:italic; }
+
+.section-divider { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">⚙️ ADMIN PANEL</div>
+    <div class="login-sub">VN Casino Research – Quản lý hệ thống</div>
+    <div class="form-group">
+      <label>Tên đăng nhập</label>
+      <input type="text" id="loginUser" placeholder="admin">
+    </div>
+    <div class="form-group">
+      <label>Mật khẩu</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">ĐĂNG NHẬP</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Deposit Modal -->
+<div class="modal-overlay hidden" id="depositModal">
+  <div class="modal-box">
+    <div class="modal-title" id="depositModalTitle">💰 Nạp tiền</div>
+    <input type="hidden" id="depositUserId">
+    <div class="form-group">
+      <label>Số tiền (đ)</label>
+      <input type="number" id="depositAmount" placeholder="100000" min="1000">
+    </div>
+    <div class="form-group">
+      <label>Ghi chú</label>
+      <input type="text" id="depositNote" placeholder="Nạp tiền thủ công...">
+    </div>
+    <div class="modal-actions-row">
+      <button class="btn-primary" onclick="confirmDeposit()">Xác nhận</button>
+      <button class="btn-cancel" onclick="closeDepositModal()">Hủy</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    VN<span>●</span>CASINO
+    <div class="sidebar-subtitle">ADMIN RESEARCH PANEL</div>
+  </div>
+  <nav style="padding-top:8px">
+    <div class="nav-item active" onclick="gotoPanel('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="gotoPanel('users', this)"><span class="nav-icon">👥</span> Người dùng</div>
+    <div class="nav-item" onclick="gotoPanel('deposit', this)"><span class="nav-icon">💰</span> Nạp / Rút tiền</div>
+    <div class="nav-item" onclick="gotoPanel('sessions', this)"><span class="nav-icon">🎲</span> Phiên chơi</div>
+    <div class="nav-item" onclick="gotoPanel('bets', this)"><span class="nav-icon">📋</span> Lịch sử cược</div>
+    <div class="nav-item" onclick="gotoPanel('transactions', this)"><span class="nav-icon">💳</span> Giao dịch</div>
+    <div class="nav-item" onclick="gotoPanel('setup', this)"><span class="nav-icon">⚙️</span> Cài đặt</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-badge">
+      <div class="admin-dot"></div>
+      <span id="adminName">Admin</span>
+    </div>
+    <button class="btn-logout-admin" onclick="logout()">Đăng xuất</button>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <div class="top-bar">
+    <div class="page-title" id="pageTitle">📊 Dashboard</div>
+    <button class="refresh-btn" onclick="refreshCurrent()">🔄 Làm mới</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-label">Tổng người dùng</div><div class="stat-value blue" id="st-users">--</div><div class="stat-sub">Đăng ký</div></div>
+        <div class="stat-card"><div class="stat-label">Tổng nạp tiền</div><div class="stat-value green" id="st-deposit">--</div><div class="stat-sub">Qua admin</div></div>
+        <div class="stat-card"><div class="stat-label">Lợi nhuận nhà cái</div><div class="stat-value gold" id="st-profit">--</div><div class="stat-sub">Tổng thu – Tổng trả</div></div>
+        <div class="stat-card"><div class="stat-label">Tổng lượt cược</div><div class="stat-value" id="st-bets">--</div><div class="stat-sub">Tất cả game</div></div>
+      </div>
+
+      <div class="chart-row">
+        <div class="table-card" style="padding:20px">
+          <div class="table-title" style="margin-bottom:14px">📈 Tỷ lệ nhà cái ăn</div>
+          <div id="houseEdgeStats">
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Tài Xỉu</span><span class="gold" id="he-taixiu">--</span></div>
+              <div class="house-edge-bar"><div class="house-fill" id="he-bar-taixiu" style="width:0%"></div></div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Bầu Cua</span><span class="gold" id="he-baucua">--</span></div>
+              <div class="house-edge-bar"><div class="house-fill" id="he-bar-baucua" style="width:0%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Xóc Đĩa</span><span class="gold" id="he-xocdia">--</span></div>
+              <div class="house-edge-bar"><div class="house-fill" id="he-bar-xocdia" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="table-card" style="padding:20px">
+          <div class="table-title" style="margin-bottom:14px">🔥 Phiên gần đây</div>
+          <div id="recentSessionsList" style="font-size:13px"></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">👥 Top người dùng (theo cược nhiều nhất)</span>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>Username</th><th>Số dư</th><th>Tổng nạp</th><th>Tổng thắng</th><th>Tổng thua</th><th>Lượt cược</th></tr></thead>
+          <tbody id="topUsersTable"><tr class="empty-row"><td colspan="7">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="panel" id="panel-users">
+      <div style="display:flex;gap:12px;margin-bottom:16px;align-items:center">
+        <input type="text" id="userSearch" placeholder="🔍 Tìm theo username..." style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-family:inherit;font-size:13px;width:280px;outline:none" oninput="filterUsers()">
+        <span style="font-size:13px;color:var(--muted)" id="userCount"></span>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">👥 Danh sách người dùng</span>
+        </div>
+        <table>
+          <thead><tr><th>Username</th><th>Số dư</th><th>Tổng nạp</th><th>Thắng</th><th>Thua</th><th>Cược</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+          <tbody id="usersTable"><tr class="empty-row"><td colspan="8">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── DEPOSIT ── -->
+    <div class="panel" id="panel-deposit">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="table-card" style="padding:24px">
+          <div class="table-title" style="margin-bottom:20px">💰 NẠP TIỀN CHO USER</div>
+          <div class="form-group">
+            <label>Chọn người dùng</label>
+            <select id="dep-userId">
+              <option value="">-- Chọn user --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Số tiền nạp (đ)</label>
+            <input type="number" id="dep-amount" placeholder="100000" min="1000">
+          </div>
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <input type="text" id="dep-note" placeholder="Nạp thủ công, chuyển khoản...">
+          </div>
+          <button class="btn-primary" onclick="doDeposit()">✅ Xác nhận nạp tiền</button>
+          <div id="dep-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+
+        <div class="table-card" style="padding:24px">
+          <div class="table-title" style="margin-bottom:20px">💸 RÚT TIỀN / TRỪ SỐ DƯ</div>
+          <div class="form-group">
+            <label>Chọn người dùng</label>
+            <select id="wd-userId">
+              <option value="">-- Chọn user --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Số tiền rút (đ)</label>
+            <input type="number" id="wd-amount" placeholder="100000" min="1000">
+          </div>
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <input type="text" id="wd-note" placeholder="Rút tiền, trừ vi phạm...">
+          </div>
+          <button class="btn-danger" onclick="doWithdraw()">❌ Xác nhận rút/trừ</button>
+          <div id="wd-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+      </div>
+
+      <div class="table-card" style="margin-top:20px">
+        <div class="table-header">
+          <span class="table-title">📋 Lịch sử giao dịch nạp/rút</span>
+        </div>
+        <table>
+          <thead><tr><th>Thời gian</th><th>Username</th><th>Loại</th><th>Số tiền</th><th>Ghi chú</th></tr></thead>
+          <tbody id="depTxTable"><tr class="empty-row"><td colspan="5">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SESSIONS ── -->
+    <div class="panel" id="panel-sessions">
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <select id="sessionGameFilter" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-family:inherit;font-size:13px;outline:none" onchange="filterSessions()">
+          <option value="">Tất cả game</option>
+          <option value="taixiu">Tài Xỉu</option>
+          <option value="baucua">Bầu Cua</option>
+          <option value="xocdia">Xóc Đĩa</option>
+        </select>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">🎲 Lịch sử phiên chơi</span></div>
+        <table>
+          <thead><tr><th>Thời gian</th><th>Game</th><th>Kết quả</th><th>Tổng cược</th><th>Tổng trả</th><th>Nhà cái ăn</th><th>Tỷ lệ</th></tr></thead>
+          <tbody id="sessionsTable"><tr class="empty-row"><td colspan="7">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── BETS ── -->
+    <div class="panel" id="panel-bets">
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <select id="betGameFilter" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-family:inherit;font-size:13px;outline:none" onchange="filterBets()">
+          <option value="">Tất cả game</option>
+          <option value="taixiu">Tài Xỉu</option>
+          <option value="baucua">Bầu Cua</option>
+          <option value="xocdia">Xóc Đĩa</option>
+        </select>
+        <select id="betWinFilter" style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-family:inherit;font-size:13px;outline:none" onchange="filterBets()">
+          <option value="">Thắng & Thua</option>
+          <option value="win">Chỉ thắng</option>
+          <option value="loss">Chỉ thua</option>
+        </select>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">📋 Lịch sử cược chi tiết</span></div>
+        <table>
+          <thead><tr><th>Thời gian</th><th>Username</th><th>Game</th><th>Cửa cược</th><th>Tiền cược</th><th>Kết quả</th><th>Trả thưởng</th><th>W/L</th></tr></thead>
+          <tbody id="betsTable"><tr class="empty-row"><td colspan="8">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TRANSACTIONS ── -->
+    <div class="panel" id="panel-transactions">
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">💳 Tất cả giao dịch</span></div>
+        <table>
+          <thead><tr><th>Thời gian</th><th>Username</th><th>Loại</th><th>Số tiền</th><th>Ghi chú</th></tr></thead>
+          <tbody id="txTable"><tr class="empty-row"><td colspan="5">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SETUP ── -->
+    <div class="panel" id="panel-setup">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="table-card" style="padding:24px">
+          <div class="table-title" style="margin-bottom:20px">🔑 TẠO TÀI KHOẢN ADMIN</div>
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="setup-user" placeholder="admin2">
+          </div>
+          <div class="form-group">
+            <label>Mật khẩu</label>
+            <input type="password" id="setup-pass" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label>Secret Key</label>
+            <input type="text" id="setup-secret" placeholder="ADMIN_SETUP_2024">
+          </div>
+          <button class="btn-primary" onclick="createAdmin()">Tạo Admin</button>
+          <div id="setup-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+
+        <div class="table-card" style="padding:24px">
+          <div class="table-title" style="margin-bottom:20px">⚙️ THÔNG TIN HỆ THỐNG</div>
+          <div style="font-size:13px;color:var(--muted);line-height:2">
+            <div>🎮 Game: Tài Xỉu, Bầu Cua, Xóc Đĩa</div>
+            <div>⏱️ Mỗi phiên: 15s cược + 3s lắc + 5s hiển thị</div>
+            <div>🏦 Tỷ lệ nhà cái Tài Xỉu: ~70% (biased RNG)</div>
+            <div>🏦 Bầu Cua + Xóc Đĩa: RNG tự nhiên</div>
+            <div>⚠️ Bộ ba Tài Xỉu: nhà cái ăn toàn bộ</div>
+            <div style="margin-top:12px;color:var(--text)">🔬 Mục đích: Nghiên cứu hành vi cờ bạc</div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="table-title" style="margin-bottom:14px">🌐 Server Status</div>
+          <div id="serverStatus" style="font-size:13px;color:var(--muted)">Đang kiểm tra...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000';
+let adminToken = localStorage.getItem('adminToken');
+let allUsers = [];
+let allSessions = [];
+let allBets = [];
+let currentPanel = 'dashboard';
+
+// ── Login ────────────────────────────────────────────────────────────────────
+window.onload = () => {
+  if (adminToken) {
+    document.getElementById('loginScreen').style.display = 'none';
+    initAdmin();
+  }
+};
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  try {
+    const res = await fetch(`${API}/api/admin/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const data = await res.json();
+    if (!res.ok) { document.getElementById('loginError').textContent = data.error; return; }
+    adminToken = data.token;
+    localStorage.setItem('adminToken', adminToken);
+    document.getElementById('adminName').textContent = data.username;
+    document.getElementById('loginScreen').style.display = 'none';
+    initAdmin();
+  } catch { document.getElementById('loginError').textContent = 'Lỗi kết nối server'; }
+}
+
+function logout() {
+  localStorage.removeItem('adminToken');
+  adminToken = null;
+  location.reload();
+}
+
+const HEADERS = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` });
+
+async function initAdmin() {
+  await loadDashboard();
+  await loadUsers();
+  await loadTransactions();
+  await loadSessions();
+  await loadBets();
+  checkServer();
+  // Auto refresh every 30s
+  setInterval(() => {
+    if (currentPanel === 'dashboard') loadDashboard();
+  }, 30000);
+}
+
+// ── Panels ────────────────────────────────────────────────────────────────────
+function gotoPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  el.classList.add('active');
+  currentPanel = name;
+  const titles = { dashboard:'📊 Dashboard', users:'👥 Người dùng', deposit:'💰 Nạp / Rút tiền', sessions:'🎲 Phiên chơi', bets:'📋 Lịch sử cược', transactions:'💳 Giao dịch', setup:'⚙️ Cài đặt' };
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+}
+
+function refreshCurrent() {
+  if (currentPanel === 'dashboard') loadDashboard();
+  else if (currentPanel === 'users') loadUsers();
+  else if (currentPanel === 'deposit') { loadUsers(); loadTransactions(); }
+  else if (currentPanel === 'sessions') loadSessions();
+  else if (currentPanel === 'bets') loadBets();
+  else if (currentPanel === 'transactions') loadTransactions();
+  toast('🔄 Đã làm mới', 'success');
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API}/api/admin/stats`, { headers: HEADERS() });
+    const d = await res.json();
+    document.getElementById('st-users').textContent = d.userCount;
+    document.getElementById('st-deposit').textContent = fmtLarge(d.totalDeposited) + 'đ';
+    document.getElementById('st-profit').textContent = fmtLarge(d.houseProfit) + 'đ';
+    document.getElementById('st-bets').textContent = d.betCount.toLocaleString();
+
+    // House edge by game
+    const sessions = d.recentSessions || [];
+    ['taixiu','baucua','xocdia'].forEach(game => {
+      const gameSessions = sessions.filter(s => s.gameType === game);
+      const totalBet = gameSessions.reduce((s, x) => s + (x.totalBetAmount||0), 0);
+      const totalPayout = gameSessions.reduce((s, x) => s + (x.totalPayout||0), 0);
+      const edge = totalBet > 0 ? ((totalBet - totalPayout) / totalBet * 100) : 0;
+      const label = { taixiu:'taixiu', baucua:'baucua', xocdia:'xocdia' }[game];
+      document.getElementById(`he-${label}`).textContent = edge.toFixed(1) + '%';
+      document.getElementById(`he-bar-${label}`).style.width = Math.min(edge, 100) + '%';
+    });
+
+    // Recent sessions
+    const rsl = document.getElementById('recentSessionsList');
+    rsl.innerHTML = sessions.slice(0,6).map(s => `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="color:var(--muted)">${gameLabel(s.gameType)}</span>
+        <span>${fmtLarge(s.totalBetAmount||0)}đ cược</span>
+        <span class="${(s.houseProfit||0) > 0 ? 'green':'red'}">${(s.houseProfit||0) > 0 ? '+':''}${fmtLarge(s.houseProfit||0)}đ</span>
+      </div>
+    `).join('') || '<span style="color:var(--muted);font-size:12px">Chưa có phiên</span>';
+
+    // Top users table
+    const sorted = [...allUsers].sort((a,b) => b.totalBets - a.totalBets).slice(0,10);
+    document.getElementById('topUsersTable').innerHTML = sorted.map((u,i) => `
+      <tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td><strong>${u.username}</strong></td>
+        <td class="gold">${fmtLarge(u.balance)}đ</td>
+        <td class="green">${fmtLarge(u.totalDeposit)}đ</td>
+        <td class="green">${fmtLarge(u.totalWin)}đ</td>
+        <td class="red">${fmtLarge(u.totalLoss)}đ</td>
+        <td>${u.totalBets}</td>
+      </tr>
+    `).join('') || '<tr class="empty-row"><td colspan="7">Chưa có dữ liệu</td></tr>';
+  } catch(e) { toast('Lỗi load dashboard: ' + e.message, 'error'); }
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+async function loadUsers() {
+  try {
+    const res = await fetch(`${API}/api/admin/users`, { headers: HEADERS() });
+    allUsers = await res.json();
+    renderUsers(allUsers);
+    populateUserSelects();
+    document.getElementById('userCount').textContent = `${allUsers.length} người dùng`;
+  } catch(e) {}
+}
+
+function renderUsers(users) {
+  const tbody = document.getElementById('usersTable');
+  if (!users.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Không có người dùng</td></tr>'; return; }
+  tbody.innerHTML = users.filter(u => !u.isAdmin).map(u => `
+    <tr>
+      <td><strong>${u.username}</strong></td>
+      <td class="gold">${fmtLarge(u.balance)}đ</td>
+      <td>${fmtLarge(u.totalDeposit)}đ</td>
+      <td class="green">${fmtLarge(u.totalWin)}đ</td>
+      <td class="red">${fmtLarge(u.totalLoss)}đ</td>
+      <td>${u.totalBets}</td>
+      <td><span class="badge badge-${u.status==='banned'?'banned':'active'}">${u.status==='banned'?'Đã khóa':'Hoạt động'}</span></td>
+      <td>
+        <button class="action-btn success" onclick="openDepositModal('${u._id}','${u.username}')">💰 Nạp</button>
+        <button class="action-btn" onclick="toggleBan('${u._id}','${u.status}')">${u.status==='banned'?'🔓 Mở':'🔒 Khóa'}</button>
+      </td>
+    </tr>
+  `).join('') || '<tr class="empty-row"><td colspan="8">Chưa có người dùng</td></tr>';
+}
+
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  renderUsers(allUsers.filter(u => u.username.toLowerCase().includes(q)));
+}
+
+function populateUserSelects() {
+  const opts = allUsers.filter(u => !u.isAdmin).map(u =>
+    `<option value="${u._id}">${u.username} (${fmtLarge(u.balance)}đ)</option>`
+  ).join('');
+  ['dep-userId','wd-userId'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">-- Chọn user --</option>' + opts;
+  });
+}
+
+async function toggleBan(userId, currentStatus) {
+  const newStatus = currentStatus === 'banned' ? 'active' : 'banned';
+  const res = await fetch(`${API}/api/admin/ban`, {
+    method: 'POST', headers: HEADERS(),
+    body: JSON.stringify({ userId, status: newStatus })
+  });
+  if (res.ok) { toast(newStatus === 'banned' ? '🔒 Đã khóa tài khoản' : '🔓 Đã mở khóa', 'success'); loadUsers(); }
+}
+
+// ── Deposit Modal ─────────────────────────────────────────────────────────────
+function openDepositModal(userId, username) {
+  document.getElementById('depositModalTitle').textContent = `💰 Nạp tiền cho: ${username}`;
+  document.getElementById('depositUserId').value = userId;
+  document.getElementById('depositAmount').value = '';
+  document.getElementById('depositNote').value = '';
+  document.getElementById('depositModal').classList.remove('hidden');
+}
+function closeDepositModal() { document.getElementById('depositModal').classList.add('hidden'); }
+
+async function confirmDeposit() {
+  const userId = document.getElementById('depositUserId').value;
+  const amount = parseInt(document.getElementById('depositAmount').value);
+  const note = document.getElementById('depositNote').value;
+  if (!userId || !amount) { toast('Vui lòng điền đủ thông tin', 'error'); return; }
+  const res = await fetch(`${API}/api/admin/deposit`, {
+    method: 'POST', headers: HEADERS(),
+    body: JSON.stringify({ userId, amount, note })
+  });
+  const data = await res.json();
+  if (res.ok) { toast(`✅ Nạp ${fmtLarge(amount)}đ thành công!`, 'success'); closeDepositModal(); loadUsers(); loadTransactions(); }
+  else toast('❌ ' + data.error, 'error');
+}
+
+// ── Deposit/Withdraw Panel ────────────────────────────────────────────────────
+async function doDeposit() {
+  const userId = document.getElementById('dep-userId').value;
+  const amount = parseInt(document.getElementById('dep-amount').value);
+  const note = document.getElementById('dep-note').value;
+  if (!userId || !amount) { document.getElementById('dep-msg').innerHTML = '<span style="color:var(--red)">Điền đủ thông tin!</span>'; return; }
+  const res = await fetch(`${API}/api/admin/deposit`, {
+    method: 'POST', headers: HEADERS(),
+    body: JSON.stringify({ userId, amount, note })
+  });
+  const data = await res.json();
+  if (res.ok) {
+    document.getElementById('dep-msg').innerHTML = `<span style="color:var(--green)">✅ Nạp thành công! Số dư mới: ${fmtLarge(data.balance)}đ</span>`;
+    loadUsers(); loadTransactions();
+    toast(`✅ Nạp ${fmtLarge(amount)}đ thành công`, 'success');
+  } else {
+    document.getElementById('dep-msg').innerHTML = `<span style="color:var(--red)">❌ ${data.error}</span>`;
+  }
+}
+
+async function doWithdraw() {
+  const userId = document.getElementById('wd-userId').value;
+  const amount = parseInt(document.getElementById('wd-amount').value);
+  const note = document.getElementById('wd-note').value;
+  if (!userId || !amount) { document.getElementById('wd-msg').innerHTML = '<span style="color:var(--red)">Điền đủ thông tin!</span>'; return; }
+  const res = await fetch(`${API}/api/admin/withdraw`, {
+    method: 'POST', headers: HEADERS(),
+    body: JSON.stringify({ userId, amount, note })
+  });
+  const data = await res.json();
+  if (res.ok) {
+    document.getElementById('wd-msg').innerHTML = `<span style="color:var(--green)">✅ Rút thành công! Số dư mới: ${fmtLarge(data.balance)}đ</span>`;
+    loadUsers(); loadTransactions();
+    toast(`✅ Rút ${fmtLarge(amount)}đ thành công`, 'success');
+  } else {
+    document.getElementById('wd-msg').innerHTML = `<span style="color:var(--red)">❌ ${data.error}</span>`;
+  }
+}
+
+// ── Sessions ──────────────────────────────────────────────────────────────────
+async function loadSessions() {
+  try {
+    const res = await fetch(`${API}/api/admin/sessions`, { headers: HEADERS() });
+    allSessions = await res.json();
+    renderSessions(allSessions);
+  } catch {}
+}
+
+function renderSessions(sessions) {
+  const tbody = document.getElementById('sessionsTable');
+  if (!sessions.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Chưa có phiên</td></tr>'; return; }
+  tbody.innerHTML = sessions.map(s => {
+    const edge = s.totalBetAmount > 0 ? ((s.houseProfit||0) / s.totalBetAmount * 100).toFixed(1) : '0';
+    const resultStr = fmtResult(s.gameType, s.result);
+    return `<tr>
+      <td style="color:var(--muted);font-size:12px">${timeAgo(s.createdAt)}</td>
+      <td><span class="badge ${gameBadge(s.gameType)}">${gameLabel(s.gameType)}</span></td>
+      <td>${resultStr}</td>
+      <td>${fmtLarge(s.totalBetAmount||0)}đ</td>
+      <td>${fmtLarge(s.totalPayout||0)}đ</td>
+      <td class="${(s.houseProfit||0) > 0 ? 'green':'red'}">${fmtLarge(s.houseProfit||0)}đ</td>
+      <td class="${parseFloat(edge) > 0 ? 'green':'red'}">${edge}%</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterSessions() {
+  const g = document.getElementById('sessionGameFilter').value;
+  renderSessions(g ? allSessions.filter(s => s.gameType === g) : allSessions);
+}
+
+// ── Bets ──────────────────────────────────────────────────────────────────────
+async function loadBets() {
+  try {
+    const res = await fetch(`${API}/api/admin/bets`, { headers: HEADERS() });
+    allBets = await res.json();
+    renderBets(allBets);
+  } catch {}
+}
+
+function renderBets(bets) {
+  const tbody = document.getElementById('betsTable');
+  if (!bets.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Chưa có lịch sử cược</td></tr>'; return; }
+  tbody.innerHTML = bets.map(b => `<tr>
+    <td style="font-size:12px;color:var(--muted)">${timeAgo(b.createdAt)}</td>
+    <td><strong>${b.username}</strong></td>
+    <td><span class="badge ${gameBadge(b.gameType)}">${gameLabel(b.gameType)}</span></td>
+    <td>${b.betChoice}</td>
+    <td>${fmtLarge(b.betAmount)}đ</td>
+    <td style="font-size:11px;color:var(--muted)">${fmtResult(b.gameType, b.result)}</td>
+    <td class="${b.isWin ? 'green':'red'}">${fmtLarge(b.payout)}đ</td>
+    <td><span class="badge ${b.isWin ? 'badge-active':'badge-banned'}">${b.isWin ? 'THẮNG':'THUA'}</span></td>
+  </tr>`).join('');
+}
+
+function filterBets() {
+  const g = document.getElementById('betGameFilter').value;
+  const w = document.getElementById('betWinFilter').value;
+  let bets = allBets;
+  if (g) bets = bets.filter(b => b.gameType === g);
+  if (w === 'win') bets = bets.filter(b => b.isWin);
+  else if (w === 'loss') bets = bets.filter(b => !b.isWin);
+  renderBets(bets);
+}
+
+// ── Transactions ──────────────────────────────────────────────────────────────
+async function loadTransactions() {
+  try {
+    const res = await fetch(`${API}/api/admin/transactions`, { headers: HEADERS() });
+    const txs = await res.json();
+    const rows = txs.map(t => `<tr>
+      <td style="font-size:12px;color:var(--muted)">${timeAgo(t.createdAt)}</td>
+      <td><strong>${t.username}</strong></td>
+      <td><span class="badge badge-${t.type}">${t.type === 'deposit' ? '💰 Nạp' : '💸 Rút'}</span></td>
+      <td class="${t.type === 'deposit' ? 'green':'red'}">${t.type === 'deposit' ? '+':'-'}${fmtLarge(t.amount)}đ</td>
+      <td style="color:var(--muted)">${t.note || '--'}</td>
+    </tr>`).join('');
+    document.getElementById('txTable').innerHTML = rows || '<tr class="empty-row"><td colspan="5">Chưa có giao dịch</td></tr>';
+    document.getElementById('depTxTable').innerHTML = rows || '<tr class="empty-row"><td colspan="5">Chưa có giao dịch</td></tr>';
+  } catch {}
+}
+
+// ── Setup ─────────────────────────────────────────────────────────────────────
+async function createAdmin() {
+  const username = document.getElementById('setup-user').value.trim();
+  const password = document.getElementById('setup-pass').value;
+  const secret = document.getElementById('setup-secret').value.trim();
+  const res = await fetch(`${API}/api/admin/create`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, secret })
+  });
+  const data = await res.json();
+  document.getElementById('setup-msg').innerHTML = res.ok
+    ? `<span style="color:var(--green)">✅ Tạo admin "${data.username}" thành công!</span>`
+    : `<span style="color:var(--red)">❌ ${data.error}</span>`;
+}
+
+async function checkServer() {
+  try {
+    const res = await fetch(`${API}/api/game-state/taixiu`);
+    const d = await res.json();
+    document.getElementById('serverStatus').innerHTML = `
+      <span style="color:var(--green)">✅ Server đang hoạt động</span><br>
+      <span>Tài Xỉu: ${d.phase} (${d.countdown}s)</span>
+    `;
+  } catch {
+    document.getElementById('serverStatus').innerHTML = `<span style="color:var(--red)">❌ Không kết nối được server</span>`;
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (!n) return '0';
+  return Number(n).toLocaleString('vi-VN');
+}
+function fmtLarge(n) {
+  if (!n) return '0';
+  if (n >= 1000000000) return (n/1000000000).toFixed(1) + 'T';
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+  return n.toString();
+}
+function timeAgo(dateStr) {
+  const d = new Date(dateStr);
+  const diff = (Date.now() - d) / 1000;
+  if (diff < 60) return `${Math.floor(diff)}s trước`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m trước`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h trước`;
+  return d.toLocaleDateString('vi-VN');
+}
+function gameLabel(g) {
+  return { taixiu:'Tài Xỉu', baucua:'Bầu Cua', xocdia:'Xóc Đĩa' }[g] || g;
+}
+function gameBadge(g) {
+  return { taixiu:'badge-tai', baucua:'badge-bau', xocdia:'badge-xoc' }[g] || '';
+}
+function fmtResult(game, result) {
+  if (!result) return '--';
+  if (game === 'taixiu') {
+    const d = result.dice ? result.dice.join('-') : '?';
+    return result.isTriple ? `⚠️ Bộ ba (${d})` : `${result.side?.toUpperCase()} (${d}=${result.sum})`;
+  }
+  if (game === 'baucua') {
+    const m = { bau:'🍐', cua:'🦀', tom:'🦐', ca:'🐟', ga:'🐓', nai:'🦌' };
+    return result.dice ? result.dice.map(d => m[d]||d).join(' ') : '--';
+  }
+  if (game === 'xocdia') {
+    return result.side ? `${result.side.toUpperCase()} (${result.redCount}đ ${result.whiteCount}t)` : '--';
+  }
+  return JSON.stringify(result).slice(0, 30);
+}
+
+function toast(msg, type = 'info') {
+  const tc = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+</body>
+</html>
