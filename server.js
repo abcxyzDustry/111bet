@@ -11,21 +11,37 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: '*', methods: ['GET', 'POST'] },
-  pingTimeout: 60000,
-  pingInterval: 25000
-});
+const io = new Server(server, { cors: { origin: '*', methods: ['GET', 'POST'] } });
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
-// ─── MongoDB Connection ───────────────────────────────────────────────────────
+// ─── Static files from /public ────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/payment', (req, res) => res.sendFile(path.join(__dirname, 'public', 'payment.html')));
+
+// ─── MongoDB ──────────────────────────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/gambling_research';
-mongoose.connect(MONGO_URI).then(() => console.log('✅ MongoDB connected')).catch(err => console.error('MongoDB error:', err));
+mongoose.connect(MONGO_URI)
+  .then(() => { console.log('✅ MongoDB connected'); ensureAdmin(); })
+  .catch(err => console.error('MongoDB error:', err));
 
-const JWT_SECRET = process.env.JWT_SECRET || 'gambling_research_secret_2024';
+const JWT_SECRET = process.env.JWT_SECRET || 'gambling_secret_2024';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@2024!';
+
+async function ensureAdmin() {
+  try {
+    const exists = await User.findOne({ username: ADMIN_USERNAME, isAdmin: true });
+    if (!exists) {
+      const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      await User.create({ username: ADMIN_USERNAME, password: hash, isAdmin: true });
+      console.log(`✅ Admin: ${ADMIN_USERNAME} / ${ADMIN_PASSWORD}`);
+    }
+  } catch {}
+}
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 const userSchema = new mongoose.Schema({
@@ -48,6 +64,19 @@ const transactionSchema = new mongoose.Schema({
   amount: Number,
   note: String,
   adminId: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const depositRequestSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  username: String,
+  amount: Number,
+  transferCode: String,
+  status: { type: String, default: 'pending' },
+  note: String,
+  adminNote: String,
+  reviewedBy: String,
+  reviewedAt: Date,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -75,19 +104,26 @@ const betSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const bannerSchema = new mongoose.Schema({
+  key: { type: String, unique: true },
+  label: String,
+  value: String,
+  updatedAt: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
+const DepositRequest = mongoose.model('DepositRequest', depositRequestSchema);
 const GameSession = mongoose.model('GameSession', sessionSchema);
 const Bet = mongoose.model('Bet', betSchema);
+const Banner = mongoose.model('Banner', bannerSchema);
 
-// ─── Auth Middleware ──────────────────────────────────────────────────────────
+// ─── Middleware ───────────────────────────────────────────────────────────────
 const auth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'No token' });
-  try {
-    req.user = jwt.verify(token, JWT_SECRET);
-    next();
-  } catch { res.status(401).json({ error: 'Invalid token' }); }
+  try { req.user = jwt.verify(token, JWT_SECRET); next(); }
+  catch { res.status(401).json({ error: 'Invalid token' }); }
 };
 
 const adminAuth = async (req, res, next) => {
@@ -102,11 +138,13 @@ const adminAuth = async (req, res, next) => {
   } catch { res.status(401).json({ error: 'Invalid token' }); }
 };
 
-// ─── Auth Routes ─────────────────────────────────────────────────────────────
+// ─── Auth Routes ──────────────────────────────────────────────────────────────
 app.post('/api/register', async (req, res) => {
   try {
     const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
+    if (!username || !password) return res.status(400).json({ error: 'Thiếu thông tin' });
+    if (username.length < 3) return res.status(400).json({ error: 'Username tối thiểu 3 ký tự' });
+    if (password.length < 6) return res.status(400).json({ error: 'Mật khẩu tối thiểu 6 ký tự' });
     const exists = await User.findOne({ username });
     if (exists) return res.status(400).json({ error: 'Username đã tồn tại' });
     const hash = await bcrypt.hash(password, 10);
@@ -129,12 +167,6 @@ app.post('/api/login', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/me', auth, async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password');
-  res.json(user);
-});
-
-// ─── Admin Routes ─────────────────────────────────────────────────────────────
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -147,50 +179,126 @@ app.post('/api/admin/login', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/create', async (req, res) => {
+app.get('/api/me', auth, async (req, res) => {
+  const user = await User.findById(req.user.id).select('-password');
+  if (!user) return res.status(404).json({ error: 'Not found' });
+  res.json(user);
+});
+
+// ─── Banner ───────────────────────────────────────────────────────────────────
+app.get('/api/banners', async (req, res) => {
   try {
-    const { username, password, secret } = req.body;
-    if (secret !== 'ADMIN_SETUP_2024') return res.status(403).json({ error: 'Forbidden' });
-    const hash = await bcrypt.hash(password, 10);
-    const user = await User.findOneAndUpdate({ username }, { password: hash, isAdmin: true }, { upsert: true, new: true });
-    res.json({ success: true, username: user.username });
+    const [depAgg, wdAgg, custom] = await Promise.all([
+      Transaction.aggregate([{ $match: { type: 'deposit' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+      Transaction.aggregate([{ $match: { type: 'withdraw' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+      Banner.find({})
+    ]);
+    res.json({ totalDeposit: depAgg[0]?.total || 0, totalWithdraw: wdAgg[0]?.total || 0, custom });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.post('/api/admin/banner', adminAuth, async (req, res) => {
+  try {
+    const { key, label, value } = req.body;
+    await Banner.findOneAndUpdate({ key }, { label, value, updatedAt: new Date() }, { upsert: true, new: true });
+    io.emit('banner_update', {});
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/admin/banner/:key', adminAuth, async (req, res) => {
+  await Banner.deleteOne({ key: req.params.key });
+  io.emit('banner_update', {});
+  res.json({ success: true });
+});
+
+// ─── Deposit Requests ─────────────────────────────────────────────────────────
+app.post('/api/deposit-request', auth, async (req, res) => {
+  try {
+    const { amount, transferCode, note } = req.body;
+    const validAmounts = [10000, 20000, 50000, 100000, 200000, 500000];
+    if (!validAmounts.includes(Number(amount))) return res.status(400).json({ error: 'Mệnh giá không hợp lệ' });
+    const pending = await DepositRequest.countDocuments({ userId: req.user.id, status: 'pending' });
+    if (pending >= 3) return res.status(400).json({ error: 'Đang có yêu cầu chờ duyệt, vui lòng chờ' });
+    const dr = await DepositRequest.create({
+      userId: req.user.id, username: req.user.username,
+      amount: Number(amount), transferCode: transferCode || '', note: note || ''
+    });
+    io.emit('admin:new_deposit_request', { id: dr._id, username: req.user.username, amount: Number(amount) });
+    res.json({ success: true, requestId: dr._id });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/my-deposit-requests', auth, async (req, res) => {
+  const reqs = await DepositRequest.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(10);
+  res.json(reqs);
+});
+
+app.get('/api/admin/deposit-requests', adminAuth, async (req, res) => {
+  const reqs = await DepositRequest.find({}).sort({ createdAt: -1 }).limit(200);
+  res.json(reqs);
+});
+
+app.post('/api/admin/deposit-request/approve', adminAuth, async (req, res) => {
+  try {
+    const { requestId, adminNote } = req.body;
+    const dr = await DepositRequest.findById(requestId);
+    if (!dr) return res.status(404).json({ error: 'Not found' });
+    if (dr.status !== 'pending') return res.status(400).json({ error: 'Đã xử lý' });
+    dr.status = 'approved'; dr.adminNote = adminNote || 'Đã duyệt';
+    dr.reviewedBy = req.user.username; dr.reviewedAt = new Date();
+    await dr.save();
+    const user = await User.findByIdAndUpdate(dr.userId, { $inc: { balance: dr.amount, totalDeposit: dr.amount } }, { new: true });
+    await Transaction.create({ userId: dr.userId, username: dr.username, type: 'deposit', amount: dr.amount, note: `SePay - ${adminNote || 'Duyệt'}`, adminId: req.user.id });
+    io.to(dr.userId.toString()).emit('balance_update', { balance: user.balance });
+    io.to(dr.userId.toString()).emit('deposit_approved', { amount: dr.amount, balance: user.balance });
+    io.emit('banner_update', {});
+    res.json({ success: true, balance: user.balance });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/deposit-request/reject', adminAuth, async (req, res) => {
+  try {
+    const { requestId, adminNote } = req.body;
+    const dr = await DepositRequest.findById(requestId);
+    if (!dr) return res.status(404).json({ error: 'Not found' });
+    if (dr.status !== 'pending') return res.status(400).json({ error: 'Đã xử lý' });
+    dr.status = 'rejected'; dr.adminNote = adminNote || 'Từ chối';
+    dr.reviewedBy = req.user.username; dr.reviewedAt = new Date();
+    await dr.save();
+    io.to(dr.userId.toString()).emit('deposit_rejected', { adminNote: dr.adminNote });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ─── Admin General ────────────────────────────────────────────────────────────
 app.get('/api/admin/users', adminAuth, async (req, res) => {
   const users = await User.find({}).select('-password').sort({ createdAt: -1 });
   res.json(users);
 });
 
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
-  const [userCount, totalDeposits, sessions, bets] = await Promise.all([
+  const [userCount, depAgg, wdAgg, sessions, bets, pendingCount] = await Promise.all([
     User.countDocuments({ isAdmin: false }),
     Transaction.aggregate([{ $match: { type: 'deposit' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Transaction.aggregate([{ $match: { type: 'withdraw' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
     GameSession.find({}).sort({ createdAt: -1 }).limit(50),
-    Bet.aggregate([
-      { $group: { _id: null, totalBet: { $sum: '$betAmount' }, totalPayout: { $sum: '$payout' }, count: { $sum: 1 } } }
-    ])
+    Bet.aggregate([{ $group: { _id: null, totalBet: { $sum: '$betAmount' }, totalPayout: { $sum: '$payout' }, count: { $sum: 1 } } }]),
+    DepositRequest.countDocuments({ status: 'pending' })
   ]);
   const betStats = bets[0] || { totalBet: 0, totalPayout: 0, count: 0 };
-  res.json({
-    userCount,
-    totalDeposited: totalDeposits[0]?.total || 0,
-    totalBetAmount: betStats.totalBet,
-    totalPayout: betStats.totalPayout,
-    houseProfit: betStats.totalBet - betStats.totalPayout,
-    betCount: betStats.count,
-    recentSessions: sessions
-  });
+  res.json({ userCount, totalDeposited: depAgg[0]?.total || 0, totalWithdrawn: wdAgg[0]?.total || 0, totalBetAmount: betStats.totalBet, totalPayout: betStats.totalPayout, houseProfit: betStats.totalBet - betStats.totalPayout, betCount: betStats.count, pendingDepositCount: pendingCount, recentSessions: sessions });
 });
 
 app.post('/api/admin/deposit', adminAuth, async (req, res) => {
   try {
     const { userId, amount, note } = req.body;
-    if (!userId || !amount || amount <= 0) return res.status(400).json({ error: 'Invalid data' });
+    if (!userId || !amount || amount <= 0) return res.status(400).json({ error: 'Invalid' });
     const user = await User.findByIdAndUpdate(userId, { $inc: { balance: amount, totalDeposit: amount } }, { new: true });
     if (!user) return res.status(404).json({ error: 'User not found' });
     await Transaction.create({ userId, username: user.username, type: 'deposit', amount, note, adminId: req.user.id });
     io.to(userId.toString()).emit('balance_update', { balance: user.balance });
+    io.emit('banner_update', {});
     res.json({ success: true, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -199,35 +307,25 @@ app.post('/api/admin/withdraw', adminAuth, async (req, res) => {
   try {
     const { userId, amount, note } = req.body;
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: 'Not found' });
     if (user.balance < amount) return res.status(400).json({ error: 'Số dư không đủ' });
-    user.balance -= amount;
-    await user.save();
+    user.balance -= amount; await user.save();
     await Transaction.create({ userId, username: user.username, type: 'withdraw', amount, note, adminId: req.user.id });
     io.to(userId.toString()).emit('balance_update', { balance: user.balance });
+    io.emit('banner_update', {});
     res.json({ success: true, balance: user.balance });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/admin/set-balance', adminAuth, async (req, res) => {
-  try {
-    const { userId, balance } = req.body;
-    const user = await User.findByIdAndUpdate(userId, { balance }, { new: true });
-    io.to(userId.toString()).emit('balance_update', { balance: user.balance });
-    res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/admin/ban', adminAuth, async (req, res) => {
   try {
-    const { userId, status } = req.body;
-    await User.findByIdAndUpdate(userId, { status });
+    await User.findByIdAndUpdate(req.body.userId, { status: req.body.status });
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.get('/api/admin/transactions', adminAuth, async (req, res) => {
-  const txs = await Transaction.find({}).sort({ createdAt: -1 }).limit(100);
+  const txs = await Transaction.find({}).sort({ createdAt: -1 }).limit(200);
   res.json(txs);
 });
 
@@ -241,261 +339,145 @@ app.get('/api/admin/sessions', adminAuth, async (req, res) => {
   res.json(sessions);
 });
 
-// ─── Game State ───────────────────────────────────────────────────────────────
+// ─── Game Engine ──────────────────────────────────────────────────────────────
 const games = {
   taixiu:  { phase: 'BETTING', countdown: 15, result: null, bets: {}, sessionId: uuidv4() },
   baucua:  { phase: 'BETTING', countdown: 15, result: null, bets: {}, sessionId: uuidv4() },
   xocdia:  { phase: 'BETTING', countdown: 15, result: null, bets: {}, sessionId: uuidv4() }
 };
 
-function rollTaixiu() {
-  const dice = [
-    Math.floor(Math.random() * 6) + 1,
-    Math.floor(Math.random() * 6) + 1,
-    Math.floor(Math.random() * 6) + 1
-  ];
-  const sum = dice.reduce((a, b) => a + b, 0);
-  const isTriple = dice[0] === dice[1] && dice[1] === dice[2];
-  let side;
-  if (isTriple) { side = 'triple'; }
-  else if (sum >= 11) { side = 'tai'; }
-  else { side = 'xiu'; }
-  return { dice, sum, side, isTriple };
+const BAU = ['bau', 'cua', 'tom', 'ca', 'ga', 'nai'];
+
+function rollTx() {
+  const d = Array.from({length:3}, () => Math.floor(Math.random()*6)+1);
+  const sum = d.reduce((a,b)=>a+b,0);
+  const isTriple = d[0]===d[1] && d[1]===d[2];
+  return { dice: d, sum, side: isTriple?'triple':sum>=11?'tai':'xiu', isTriple };
 }
 
-function rollTaixiuBiased(bets) {
-  const rand = Math.random();
-  if (rand < 0.70) {
-    const taiTotal = Object.values(bets).reduce((s, b) => s + (b.tai || 0), 0);
-    const xiuTotal = Object.values(bets).reduce((s, b) => s + (b.xiu || 0), 0);
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const r = rollTaixiu();
+function rollTxBiased(bets) {
+  if (Math.random() < 0.70) {
+    const tT = Object.values(bets).reduce((s,b)=>s+(b.tai||0),0);
+    const xT = Object.values(bets).reduce((s,b)=>s+(b.xiu||0),0);
+    for (let i=0;i<20;i++) {
+      const r = rollTx();
       if (r.isTriple) return r;
-      if (taiTotal > xiuTotal && r.side === 'xiu') return r;
-      if (xiuTotal > taiTotal && r.side === 'tai') return r;
-      if (taiTotal === xiuTotal) return r;
+      if (tT>xT && r.side==='xiu') return r;
+      if (xT>tT && r.side==='tai') return r;
+      if (tT===xT) return r;
     }
   }
-  return rollTaixiu();
+  return rollTx();
 }
 
-const BAU_CUA_ICONS = ['bau', 'cua', 'tom', 'ca', 'ga', 'nai'];
-function rollBaucua() {
-  return {
-    dice: [
-      BAU_CUA_ICONS[Math.floor(Math.random() * 6)],
-      BAU_CUA_ICONS[Math.floor(Math.random() * 6)],
-      BAU_CUA_ICONS[Math.floor(Math.random() * 6)]
-    ]
-  };
+function rollBc() { return { dice: Array.from({length:3}, ()=>BAU[Math.floor(Math.random()*6)]) }; }
+
+function rollXd() {
+  const coins = Array.from({length:4}, ()=>Math.random()>0.5?'do':'trang');
+  const red = coins.filter(c=>c==='do').length;
+  return { coins, redCount: red, whiteCount: 4-red, side: red%2===0?'chan':'le' };
 }
 
-function rollXocdia() {
-  const coins = Array.from({ length: 4 }, () => Math.random() > 0.5 ? 'do' : 'trang');
-  const redCount = coins.filter(c => c === 'do').length;
-  const whiteCount = 4 - redCount;
-  const evenRed = redCount % 2 === 0;
-  return { coins, redCount, whiteCount, side: evenRed ? 'chan' : 'le' };
-}
-
-function calcTaixiuPayout(betChoice, betAmount, result) {
-  if (result.isTriple) return 0;
-  if (betChoice === result.side) return betAmount * 2;
+function payTx(choice, amt, r) { if(r.isTriple) return 0; return choice===r.side?amt*2:0; }
+function payBc(choice, amt, r) { const n=r.dice.filter(d=>d===choice).length; return n?amt+amt*n:0; }
+function payXd(choice, amt, r) {
+  if(choice==='bongtrang'&&r.whiteCount===4) return amt*13;
+  if(choice==='bondo'&&r.redCount===4) return amt*13;
+  if((choice==='chan'||choice==='le')&&choice===r.side) return amt*2;
   return 0;
 }
 
-function calcBaucuaPayout(betChoice, betAmount, result) {
-  const count = result.dice.filter(d => d === betChoice).length;
-  if (count === 0) return 0;
-  return betAmount + betAmount * count;
-}
-
-function calcXocdiaPayout(betChoice, betAmount, result) {
-  if (betChoice === 'bongtrang' && result.whiteCount === 4) return betAmount * 13;
-  if (betChoice === 'bondo' && result.redCount === 4) return betAmount * 13;
-  if ((betChoice === 'chan' || betChoice === 'le') && betChoice === result.side) return betAmount * 2;
-  return 0;
-}
-
-function startGameLoop(gameType) {
-  const state = games[gameType];
-
-  const tick = async () => {
-    if (state.phase === 'BETTING') {
-      state.countdown--;
-      io.emit(`${gameType}:tick`, { countdown: state.countdown, phase: 'BETTING' });
-      if (state.countdown <= 0) {
-        state.phase = 'ROLLING';
-        state.countdown = 3;
-        io.emit(`${gameType}:rolling`, {});
-      }
-    } else if (state.phase === 'ROLLING') {
-      state.countdown--;
-      if (state.countdown <= 0) {
-        if (gameType === 'taixiu') state.result = rollTaixiuBiased(state.bets);
-        else if (gameType === 'baucua') state.result = rollBaucua();
-        else state.result = rollXocdia();
-
-        state.phase = 'RESULT';
-        state.countdown = 6;
-
-        const sessionBets = [];
-        let totalBet = 0, totalPayout = 0;
-
-        for (const [userId, userBets] of Object.entries(state.bets)) {
-          for (const [choice, amount] of Object.entries(userBets)) {
-            if (amount <= 0) continue;
-            let payout = 0;
-            if (gameType === 'taixiu') payout = calcTaixiuPayout(choice, amount, state.result);
-            else if (gameType === 'baucua') payout = calcBaucuaPayout(choice, amount, state.result);
-            else payout = calcXocdiaPayout(choice, amount, state.result);
-
-            const isWin = payout > amount;
-            const user = await User.findById(userId);
+function startLoop(gameType) {
+  const s = games[gameType];
+  setInterval(async () => {
+    if (s.phase==='BETTING') {
+      s.countdown--;
+      io.emit(`${gameType}:tick`, { countdown: s.countdown });
+      if (s.countdown<=0) { s.phase='ROLLING'; s.countdown=3; io.emit(`${gameType}:rolling`,{}); }
+    } else if (s.phase==='ROLLING') {
+      s.countdown--;
+      if (s.countdown<=0) {
+        s.result = gameType==='taixiu'?rollTxBiased(s.bets):gameType==='baucua'?rollBc():rollXd();
+        s.phase='RESULT'; s.countdown=6;
+        let tb=0,tp=0; const sb=[];
+        for (const [uid, ubets] of Object.entries(s.bets)) {
+          for (const [choice, amt] of Object.entries(ubets)) {
+            if (!amt) continue;
+            const pay = gameType==='taixiu'?payTx(choice,amt,s.result):gameType==='baucua'?payBc(choice,amt,s.result):payXd(choice,amt,s.result);
+            const isWin = pay>amt;
+            const user = await User.findById(uid);
             if (user) {
-              const profit = payout - amount;
-              user.balance += payout;
-              user.totalBets += 1;
-              if (isWin) user.totalWin += profit;
-              else user.totalLoss += amount;
+              user.balance+=pay; user.totalBets+=1;
+              isWin?user.totalWin+=(pay-amt):user.totalLoss+=amt;
               await user.save();
-
-              const betDoc = await Bet.create({
-                userId, username: user.username, gameType,
-                sessionId: state.sessionId, betChoice: choice,
-                betAmount: amount, result: state.result, payout, isWin
-              });
-              sessionBets.push(betDoc);
-              totalBet += amount;
-              totalPayout += payout;
-
-              io.to(userId).emit('balance_update', { balance: user.balance });
-              io.to(userId).emit(`${gameType}:bet_result`, {
-                choice, amount, payout, isWin, result: state.result, balance: user.balance
-              });
+              sb.push(await Bet.create({ userId:uid, username:user.username, gameType, sessionId:s.sessionId, betChoice:choice, betAmount:amt, result:s.result, payout:pay, isWin }));
+              tb+=amt; tp+=pay;
+              io.to(uid).emit('balance_update', { balance:user.balance });
+              io.to(uid).emit(`${gameType}:bet_result`, { choice, amount:amt, payout:pay, isWin, result:s.result, balance:user.balance });
             }
           }
         }
-
-        await GameSession.create({
-          sessionId: state.sessionId, gameType, result: state.result,
-          bets: sessionBets, totalBetAmount: totalBet, totalPayout,
-          houseProfit: totalBet - totalPayout
-        });
-
-        io.emit(`${gameType}:result`, { result: state.result, sessionId: state.sessionId });
-        state.bets = {};
+        await GameSession.create({ sessionId:s.sessionId, gameType, result:s.result, bets:sb, totalBetAmount:tb, totalPayout:tp, houseProfit:tb-tp });
+        io.emit(`${gameType}:result`, { result:s.result, sessionId:s.sessionId });
+        s.bets={};
       }
-    } else if (state.phase === 'RESULT') {
-      state.countdown--;
-      if (state.countdown <= 0) {
-        state.phase = 'BETTING';
-        state.countdown = 15;
-        state.result = null;
-        state.sessionId = uuidv4();
-        io.emit(`${gameType}:new_round`, { sessionId: state.sessionId });
-      }
+    } else {
+      s.countdown--;
+      if (s.countdown<=0) { s.phase='BETTING'; s.countdown=15; s.result=null; s.sessionId=uuidv4(); io.emit(`${gameType}:new_round`,{sessionId:s.sessionId}); }
     }
-  };
-
-  setInterval(tick, 1000);
+  }, 1000);
 }
 
-startGameLoop('taixiu');
-startGameLoop('baucua');
-startGameLoop('xocdia');
+startLoop('taixiu'); startLoop('baucua'); startLoop('xocdia');
 
 // ─── Socket.IO ────────────────────────────────────────────────────────────────
-io.on('connection', (socket) => {
-  console.log('Socket connected:', socket.id);
-
-  socket.on('auth', (token) => {
+io.on('connection', socket => {
+  socket.on('auth', token => {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      socket.userId = decoded.id;
-      socket.join(decoded.id);
-      for (const [gameType, state] of Object.entries(games)) {
-        socket.emit(`${gameType}:state`, {
-          phase: state.phase,
-          countdown: state.countdown,
-          result: state.result,
-          sessionId: state.sessionId
-        });
-      }
+      const d = jwt.verify(token, JWT_SECRET);
+      socket.userId = d.id; socket.join(d.id);
+      for (const [gt, st] of Object.entries(games))
+        socket.emit(`${gt}:state`, { phase:st.phase, countdown:st.countdown, result:st.result, sessionId:st.sessionId });
     } catch {}
   });
 
   socket.on('place_bet', async ({ gameType, bets, token }) => {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const userId = decoded.id;
-      const state = games[gameType];
-      if (state.phase !== 'BETTING') {
-        return socket.emit('bet_error', { error: 'Phiên cược đã đóng' });
-      }
-
-      const user = await User.findById(userId);
-      if (!user) return socket.emit('bet_error', { error: 'User not found' });
-      if (user.status === 'banned') return socket.emit('bet_error', { error: 'Tài khoản bị khóa' });
-
-      const totalBet = Object.values(bets).reduce((s, v) => s + v, 0);
-      if (totalBet <= 0) return socket.emit('bet_error', { error: 'Số tiền cược không hợp lệ' });
-      if (user.balance < totalBet) return socket.emit('bet_error', { error: 'Số dư không đủ' });
-      if (totalBet > 50000000) return socket.emit('bet_error', { error: 'Vượt hạn mức cược tối đa' });
-
-      user.balance -= totalBet;
-      await user.save();
-
-      if (!state.bets[userId]) state.bets[userId] = {};
-      for (const [choice, amount] of Object.entries(bets)) {
-        state.bets[userId][choice] = (state.bets[userId][choice] || 0) + amount;
-      }
-
-      socket.emit('bet_accepted', { balance: user.balance, bets: state.bets[userId] });
-      io.to(userId).emit('balance_update', { balance: user.balance });
-    } catch (e) {
-      socket.emit('bet_error', { error: 'Lỗi đặt cược: ' + e.message });
-    }
-  });
-
-  socket.on('get_history', async ({ gameType, token }) => {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const bets = await Bet.find({ userId: decoded.id, gameType }).sort({ createdAt: -1 }).limit(20);
-      socket.emit('history', { gameType, bets });
-    } catch {}
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected:', socket.id);
+      const d = jwt.verify(token, JWT_SECRET);
+      const st = games[gameType];
+      if (st.phase!=='BETTING') return socket.emit('bet_error', { error:'Phiên cược đã đóng' });
+      const user = await User.findById(d.id);
+      if (!user) return socket.emit('bet_error', { error:'User not found' });
+      if (user.status==='banned') return socket.emit('bet_error', { error:'Tài khoản bị khóa' });
+      const total = Object.values(bets).reduce((s,v)=>s+v,0);
+      if (total<=0) return socket.emit('bet_error', { error:'Số tiền không hợp lệ' });
+      if (user.balance<total) return socket.emit('bet_error', { error:'Số dư không đủ! Vui lòng nạp tiền.' });
+      user.balance-=total; await user.save();
+      if (!st.bets[d.id]) st.bets[d.id]={};
+      for (const [c,a] of Object.entries(bets)) st.bets[d.id][c]=(st.bets[d.id][c]||0)+a;
+      socket.emit('bet_accepted', { balance:user.balance });
+      io.to(d.id).emit('balance_update', { balance:user.balance });
+    } catch(e) { socket.emit('bet_error', { error:e.message }); }
   });
 });
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
-app.get('/api/game-state/:gameType', (req, res) => {
-  const state = games[req.params.gameType];
-  if (!state) return res.status(404).json({ error: 'Game not found' });
-  res.json({ phase: state.phase, countdown: state.countdown, result: state.result, sessionId: state.sessionId });
+// ─── Public Game APIs ─────────────────────────────────────────────────────────
+app.get('/api/game-state/:gt', (req, res) => {
+  const s = games[req.params.gt];
+  if (!s) return res.status(404).json({ error:'Not found' });
+  res.json({ phase:s.phase, countdown:s.countdown, result:s.result, sessionId:s.sessionId });
 });
 
-app.get('/api/history/:gameType', auth, async (req, res) => {
-  const bets = await Bet.find({ userId: req.user.id, gameType: req.params.gameType }).sort({ createdAt: -1 }).limit(30);
+app.get('/api/history/:gt', auth, async (req, res) => {
+  const bets = await Bet.find({ userId:req.user.id, gameType:req.params.gt }).sort({ createdAt:-1 }).limit(30);
   res.json(bets);
 });
 
-app.get('/api/recent-results/:gameType', async (req, res) => {
-  const sessions = await GameSession.find({ gameType: req.params.gameType }).sort({ createdAt: -1 }).limit(20);
-  res.json(sessions.map(s => s.result));
+app.get('/api/recent-results/:gt', async (req, res) => {
+  const sessions = await GameSession.find({ gameType:req.params.gt }).sort({ createdAt:-1 }).limit(20);
+  res.json(sessions.map(s=>s.result));
 });
 
-// ─── Routes cho HTML ─────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
+// ─── Start ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server on :${PORT}`));
