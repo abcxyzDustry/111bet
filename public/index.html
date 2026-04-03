@@ -4,633 +4,184 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VN Casino – Tài Xỉu | Bầu Cua | Xóc Đĩa</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --gold: #f5c518;
-  --gold2: #e8a400;
-  --red: #c0392b;
-  --red2: #e74c3c;
-  --dark: #0d0d0d;
-  --dark2: #161616;
-  --dark3: #1e1e1e;
-  --card: #1a1a1a;
-  --border: #2a2a2a;
-  --text: #e8e8e8;
-  --muted: #888;
-  --green: #27ae60;
-  --blue: #2980b9;
-  --tai: #c0392b;
-  --xiu: #2980b9;
+  --gold:#f5c518;--gold2:#e8a400;--red:#c0392b;--red2:#e74c3c;
+  --dark:#0d0d0d;--dark2:#161616;--dark3:#1e1e1e;--card:#1a1a1a;
+  --border:#2a2a2a;--text:#e8e8e8;--muted:#888;--green:#27ae60;--blue:#2980b9;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background: var(--dark);
-  color: var(--text);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at 20% 0%, rgba(192,57,43,0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 100%, rgba(245,197,24,0.06) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(192,57,43,.08),transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(245,197,24,.06),transparent 60%);pointer-events:none;z-index:0;}
 
-/* ── Header ── */
-.header {
-  background: linear-gradient(90deg, #0d0d0d, #1a0a00, #0d0d0d);
-  border-bottom: 2px solid #2a1800;
-  padding: 0 24px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.5);
-}
-.logo {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 22px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #f5c518, #e8a400, #c8860a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 1px;
-}
-.logo span { color: var(--red2); -webkit-text-fill-color: var(--red2); }
-.header-right { display: flex; align-items: center; gap: 16px; }
-.balance-display {
-  background: linear-gradient(135deg, rgba(245,197,24,0.15), rgba(245,197,24,0.05));
-  border: 1px solid rgba(245,197,24,0.3);
-  border-radius: 8px;
-  padding: 6px 16px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.balance-display span { color: var(--gold); font-size: 16px; }
-.username-tag { color: var(--muted); font-size: 13px; }
-.btn-auth {
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-.btn-auth:hover { opacity: 0.85; transform: translateY(-1px); }
-.btn-logout {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 7px 14px;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-.btn-logout:hover { color: var(--text); border-color: var(--muted); }
+.header{background:linear-gradient(90deg,#0d0d0d,#1a0a00,#0d0d0d);border-bottom:2px solid #2a1800;padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.5);}
+.logo{font-family:'Chakra Petch',monospace;font-size:20px;font-weight:700;background:linear-gradient(135deg,#f5c518,#e8a400,#c8860a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px;}
+.logo span{color:var(--red2);-webkit-text-fill-color:var(--red2);}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.balance-display{background:linear-gradient(135deg,rgba(245,197,24,.15),rgba(245,197,24,.05));border:1px solid rgba(245,197,24,.3);border-radius:8px;padding:5px 14px;font-size:13px;font-weight:600;}
+.balance-display span{color:var(--gold);font-size:15px;}
+.username-tag{color:var(--muted);font-size:12px;}
+.btn-nap{background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-nap:hover{opacity:.85;transform:translateY(-1px);}
+.btn-auth{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:8px;padding:7px 16px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-auth:hover{opacity:.85;}
+.btn-logout{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-logout:hover{color:var(--text);border-color:var(--muted);}
 
-/* ── Main Layout ── */
-.main { position: relative; z-index: 1; }
-.tabs {
-  display: flex;
-  background: var(--dark2);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  gap: 4px;
-}
-.tab-btn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-family: 'Chakra Petch', monospace;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 14px 24px;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  letter-spacing: 0.5px;
-}
-.tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+/* Banner */
+.notif-bar{background:linear-gradient(90deg,rgba(192,57,43,.15),rgba(245,197,24,.1),rgba(192,57,43,.15));border-bottom:1px solid rgba(245,197,24,.2);padding:7px 0;overflow:hidden;white-space:nowrap;font-size:12px;color:var(--muted);}
+.notif-inner{display:inline-block;animation:marquee 35s linear infinite;padding-left:100%;}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
 
-.game-panel { display: none; padding: 24px; }
-.game-panel.active { display: block; }
+.tabs{display:flex;background:var(--dark2);border-bottom:1px solid var(--border);padding:0 20px;gap:4px;position:relative;z-index:1;}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:'Chakra Petch',monospace;font-size:13px;font-weight:600;padding:13px 20px;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;letter-spacing:.5px;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
 
-/* ── Game Container ── */
-.game-container {
-  max-width: 900px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 20px;
-}
-@media(max-width:768px) { .game-container { grid-template-columns: 1fr; } }
+.game-panel{display:none;padding:20px;position:relative;z-index:1;}
+.game-panel.active{display:block;}
+.game-container{max-width:880px;margin:0 auto;display:grid;grid-template-columns:1fr 300px;gap:18px;}
+@media(max-width:720px){.game-container{grid-template-columns:1fr;}}
 
-/* ── Round Status ── */
-.round-status {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.phase-badge {
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  font-family: 'Chakra Petch', monospace;
-}
-.phase-BETTING { background: rgba(39,174,96,0.2); color: #2ecc71; border: 1px solid rgba(39,174,96,0.4); }
-.phase-ROLLING { background: rgba(245,197,24,0.2); color: var(--gold); border: 1px solid rgba(245,197,24,0.4); }
-.phase-RESULT  { background: rgba(192,57,43,0.2); color: var(--red2); border: 1px solid rgba(192,57,43,0.4); }
-.countdown {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--gold);
-}
-.countdown.urgent { color: var(--red2); animation: pulse 0.5s infinite alternate; }
-@keyframes pulse { from { opacity: 1; } to { opacity: 0.5; } }
+.round-status{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.phase-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;font-family:'Chakra Petch',monospace;}
+.phase-BETTING{background:rgba(39,174,96,.2);color:#2ecc71;border:1px solid rgba(39,174,96,.4);}
+.phase-ROLLING{background:rgba(245,197,24,.2);color:var(--gold);border:1px solid rgba(245,197,24,.4);}
+.phase-RESULT{background:rgba(192,57,43,.2);color:var(--red2);border:1px solid rgba(192,57,43,.4);}
+.countdown{font-family:'Chakra Petch',monospace;font-size:26px;font-weight:700;color:var(--gold);}
+.countdown.urgent{color:var(--red2);animation:pulse .5s infinite alternate;}
+@keyframes pulse{from{opacity:1}to{opacity:.4}}
 
-/* ── Dice Display ── */
-.dice-area {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 30px;
-  text-align: center;
-  min-height: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-}
-.dice-area::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, rgba(245,197,24,0.03) 0%, transparent 70%);
-}
-.dice {
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(145deg, #fff 0%, #ddd 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  font-weight: 900;
-  color: var(--red);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.8);
-  transition: all 0.3s;
-  position: relative;
-}
-.dice.rolling { animation: diceRoll 0.1s infinite; }
-@keyframes diceRoll {
-  0% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(10deg) scale(1.05); }
-  75% { transform: rotate(-10deg) scale(0.95); }
-  100% { transform: rotate(0deg) scale(1); }
-}
-.dice-placeholder { font-size: 48px; opacity: 0.2; }
+.dice-area{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;text-align:center;min-height:150px;display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;position:relative;overflow:hidden;}
+.dice{width:66px;height:66px;background:linear-gradient(145deg,#fff,#ddd);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:var(--red);box-shadow:0 4px 15px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.8);}
+.dice.rolling{animation:diceRoll .1s infinite;}
+@keyframes diceRoll{0%{transform:rotate(0) scale(1)}25%{transform:rotate(10deg) scale(1.05)}75%{transform:rotate(-10deg) scale(.95)}100%{transform:rotate(0) scale(1)}}
+.dice-placeholder{font-size:44px;opacity:.2;}
+.baucua-dice{width:76px;height:76px;background:linear-gradient(145deg,#1a3a00,#0d2000);border:2px solid #2a5a00;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 4px 15px rgba(0,0,0,.5);}
+.coin{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.4);}
+.coin.do{background:linear-gradient(145deg,#c0392b,#922b21);color:#fff;}
+.coin.trang{background:linear-gradient(145deg,#ecf0f1,#bdc3c7);color:#333;}
 
-/* Bau Cua dice */
-.baucua-dice {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(145deg, #1a3a00, #0d2000);
-  border: 2px solid #2a5a00;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
+.rolling-overlay{position:absolute;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;border-radius:14px;z-index:10;}
+.rolling-text{font-family:'Chakra Petch',monospace;font-size:22px;color:var(--gold);animation:blink .5s infinite alternate;}
+@keyframes blink{from{opacity:1}to{opacity:.3}}
 
-/* Xoc Dia coins */
-.xocdia-bowl {
-  position: relative;
-  width: 200px;
-  height: 120px;
-}
-.coin {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
-  position: absolute;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-}
-.coin.do { background: linear-gradient(145deg, #c0392b, #922b21); color: #fff; }
-.coin.trang { background: linear-gradient(145deg, #ecf0f1, #bdc3c7); color: #333; }
+.result-banner{font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;text-align:center;padding:6px 0;animation:slideIn .3s ease;margin-bottom:10px;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.result-tai{color:#e74c3c;}.result-xiu{color:#3498db;}.result-triple{color:var(--gold);}.result-chan{color:#2ecc71;}.result-le{color:#9b59b6;}
 
-/* Result banner */
-.result-banner {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 32px;
-  font-weight: 700;
-  text-align: center;
-  padding: 8px 0;
-  animation: slideIn 0.3s ease;
-}
-@keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-.result-tai { color: var(--tai); }
-.result-xiu { color: var(--xiu); }
-.result-triple { color: var(--gold); }
-.result-chan { color: #27ae60; }
-.result-le { color: #8e44ad; }
+.bet-board{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+.bet-board h3{font-family:'Chakra Petch',monospace;font-size:12px;color:var(--gold);letter-spacing:1px;margin-bottom:14px;text-transform:uppercase;}
+.bet-options{display:grid;gap:9px;}
+.bet-btn{background:var(--dark3);border:2px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;font-family:'Be Vietnam Pro',sans-serif;color:var(--text);transition:all .2s;display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;}
+.bet-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(245,197,24,.05);}
+.bet-btn.selected-tai{border-color:var(--red);background:rgba(192,57,43,.1);}
+.bet-btn.selected-xiu{border-color:var(--blue);background:rgba(41,128,185,.1);}
+.bet-btn.selected-chan{border-color:#27ae60;background:rgba(39,174,96,.1);}
+.bet-btn.selected-le{border-color:#8e44ad;background:rgba(142,68,173,.1);}
+.bet-btn.selected{border-color:var(--gold);background:rgba(245,197,24,.1);}
+.bet-btn:disabled{opacity:.4;cursor:not-allowed;}
+.bet-label{display:flex;align-items:center;gap:8px;}
+.bet-icon{font-size:18px;}
+.odds{color:var(--muted);font-size:11px;font-weight:400;}
+.bet-amount-display{background:rgba(245,197,24,.15);color:var(--gold);padding:2px 10px;border-radius:12px;font-size:12px;min-width:56px;text-align:center;}
 
-/* ── Bet Board ── */
-.bet-board {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.bet-board h3 {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 13px;
-  color: var(--gold);
-  letter-spacing: 1px;
-  margin-bottom: 16px;
-  text-transform: uppercase;
-}
-.bet-options { display: grid; gap: 10px; }
-.bet-btn {
-  background: var(--dark3);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  cursor: pointer;
-  font-family: 'Be Vietnam Pro', sans-serif;
-  color: var(--text);
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 15px;
-  font-weight: 600;
-}
-.bet-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(245,197,24,0.05); }
-.bet-btn.selected-tai { border-color: var(--tai); background: rgba(192,57,43,0.1); }
-.bet-btn.selected-xiu { border-color: var(--xiu); background: rgba(41,128,185,0.1); }
-.bet-btn.selected-chan { border-color: #27ae60; background: rgba(39,174,96,0.1); }
-.bet-btn.selected-le { border-color: #8e44ad; background: rgba(142,68,173,0.1); }
-.bet-btn.selected { border-color: var(--gold); background: rgba(245,197,24,0.1); }
-.bet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.bet-amount-display {
-  background: rgba(245,197,24,0.15);
-  color: var(--gold);
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  min-width: 60px;
-  text-align: center;
-}
-.bet-label { display: flex; align-items: center; gap: 8px; }
-.bet-icon { font-size: 20px; }
-.odds { color: var(--muted); font-size: 12px; font-weight: 400; }
+.baucua-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.baucua-btn{background:var(--dark3);border:2px solid var(--border);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.baucua-btn:hover:not(:disabled){border-color:var(--gold);background:rgba(245,197,24,.05);}
+.baucua-btn.selected{border-color:var(--gold);background:rgba(245,197,24,.12);}
+.baucua-btn:disabled{opacity:.4;cursor:not-allowed;}
+.baucua-emoji{font-size:34px;}.baucua-name{font-size:11px;font-weight:600;}.baucua-amount{font-size:10px;color:var(--gold);}
 
-/* Baucua grid */
-.baucua-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.baucua-btn {
-  background: var(--dark3);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 8px;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.baucua-btn:hover:not(:disabled) { border-color: var(--gold); background: rgba(245,197,24,0.05); }
-.baucua-btn.selected { border-color: var(--gold); background: rgba(245,197,24,0.12); }
-.baucua-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.baucua-emoji { font-size: 36px; }
-.baucua-name { font-size: 12px; font-weight: 600; color: var(--text); }
-.baucua-amount { font-size: 11px; color: var(--gold); }
+.xocdia-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 
-/* Xocdia options */
-.xocdia-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.xocdia-special { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{width:50px;height:50px;border-radius:50%;border:3px dashed;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Chakra Petch',monospace;}
+.chip:hover{transform:scale(1.1);}
+.chip.active{transform:scale(1.15);box-shadow:0 0 12px currentColor;}
+.chip-1k{border-color:#3498db;color:#3498db;background:rgba(52,152,219,.1);}
+.chip-5k{border-color:#27ae60;color:#27ae60;background:rgba(39,174,96,.1);}
+.chip-10k{border-color:#e67e22;color:#e67e22;background:rgba(230,126,34,.1);}
+.chip-50k{border-color:#8e44ad;color:#8e44ad;background:rgba(142,68,173,.1);}
+.chip-100k{border-color:#c0392b;color:#c0392b;background:rgba(192,57,43,.1);}
+.chip-500k{border-color:#f5c518;color:#f5c518;background:rgba(245,197,24,.1);}
 
-/* ── Chip Selector ── */
-.chip-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.chip {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 3px dashed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Chakra Petch', monospace;
-}
-.chip:hover { transform: scale(1.1); }
-.chip.active { transform: scale(1.15); box-shadow: 0 0 12px currentColor; }
-.chip-1k   { border-color: #3498db; color: #3498db; background: rgba(52,152,219,0.1); }
-.chip-5k   { border-color: #27ae60; color: #27ae60; background: rgba(39,174,96,0.1); }
-.chip-10k  { border-color: #e67e22; color: #e67e22; background: rgba(230,126,34,0.1); }
-.chip-50k  { border-color: #8e44ad; color: #8e44ad; background: rgba(142,68,173,0.1); }
-.chip-100k { border-color: #c0392b; color: #c0392b; background: rgba(192,57,43,0.1); }
-.chip-500k { border-color: #f5c518; color: #f5c518; background: rgba(245,197,24,0.1); }
+.total-bet-info{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px;}
+.total-bet-info span{color:var(--gold);font-weight:600;}
+.action-btns{display:flex;gap:8px;}
+.btn-place{flex:1;background:linear-gradient(135deg,#c0392b,#922b21);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-place:hover:not(:disabled){background:linear-gradient(135deg,#e74c3c,#c0392b);transform:translateY(-1px);}
+.btn-place:disabled{opacity:.4;cursor:not-allowed;}
+.btn-clear{background:var(--dark3);color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:13px 16px;cursor:pointer;font-family:inherit;font-size:13px;transition:all .2s;}
+.btn-clear:hover{color:var(--text);}
 
-.action-btns { display: flex; gap: 8px; }
-.btn-place {
-  flex: 1;
-  background: linear-gradient(135deg, #c0392b, #922b21);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 14px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-.btn-place:hover:not(:disabled) { background: linear-gradient(135deg, #e74c3c, #c0392b); transform: translateY(-1px); }
-.btn-place:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-clear {
-  background: var(--dark3);
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 18px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-.btn-clear:hover { color: var(--text); border-color: var(--muted); }
+/* No balance CTA */
+.no-balance-box{background:linear-gradient(135deg,rgba(39,174,96,.1),rgba(39,174,96,.05));border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:12px 16px;text-align:center;margin-bottom:12px;font-size:13px;}
+.no-balance-box b{color:#2ecc71;}
+.btn-nap-now{background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-top:8px;transition:all .2s;}
+.btn-nap-now:hover{opacity:.85;}
 
-/* ── Sidebar ── */
-.sidebar-col {}
-.recent-results {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.recent-results h4 {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 12px;
-  color: var(--gold);
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
-.result-dots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.rdot {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: 'Chakra Petch', monospace;
-}
-.rdot-tai   { background: rgba(192,57,43,0.3); color: #e74c3c; border: 1px solid rgba(192,57,43,0.5); }
-.rdot-xiu   { background: rgba(41,128,185,0.3); color: #3498db; border: 1px solid rgba(41,128,185,0.5); }
-.rdot-triple{ background: rgba(245,197,24,0.3); color: var(--gold); border: 1px solid rgba(245,197,24,0.5); }
-.rdot-chan  { background: rgba(39,174,96,0.3); color: #2ecc71; border: 1px solid rgba(39,174,96,0.5); }
-.rdot-le    { background: rgba(142,68,173,0.3); color: #9b59b6; border: 1px solid rgba(142,68,173,0.5); }
-.rdot-bau   { background: rgba(230,126,34,0.2); border: 1px solid rgba(230,126,34,0.4); }
+.sidebar-col{}
+.recent-results{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+.recent-results h4,.my-history h4{font-family:'Chakra Petch',monospace;font-size:11px;color:var(--gold);letter-spacing:1px;margin-bottom:10px;text-transform:uppercase;}
+.result-dots{display:flex;flex-wrap:wrap;gap:5px;}
+.rdot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:'Chakra Petch',monospace;}
+.rdot-tai{background:rgba(192,57,43,.3);color:#e74c3c;border:1px solid rgba(192,57,43,.5);}
+.rdot-xiu{background:rgba(41,128,185,.3);color:#3498db;border:1px solid rgba(41,128,185,.5);}
+.rdot-triple{background:rgba(245,197,24,.3);color:var(--gold);border:1px solid rgba(245,197,24,.5);}
+.rdot-chan{background:rgba(39,174,96,.3);color:#2ecc71;border:1px solid rgba(39,174,96,.5);}
+.rdot-le{background:rgba(142,68,173,.3);color:#9b59b6;border:1px solid rgba(142,68,173,.5);}
+.rdot-bau{background:rgba(230,126,34,.2);border:1px solid rgba(230,126,34,.4);}
 
-.my-history {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-}
-.my-history h4 {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 12px;
-  color: var(--gold);
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
-.hist-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-.hist-item:last-child { border-bottom: none; }
-.hist-win { color: #2ecc71; font-weight: 700; }
-.hist-loss { color: #e74c3c; }
+.my-history{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.hist-item:last-child{border-bottom:none;}
+.hist-win{color:#2ecc71;font-weight:700;}.hist-loss{color:#e74c3c;}
+.empty-state{color:var(--muted);font-size:12px;text-align:center;padding:16px 0;}
 
-/* ── Toast ── */
-.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
-.toast {
-  background: var(--dark3);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 18px;
-  font-size: 14px;
-  min-width: 240px;
-  animation: toastIn 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-}
-.toast.win { border-color: #27ae60; background: rgba(39,174,96,0.1); }
-.toast.loss { border-color: #c0392b; background: rgba(192,57,43,0.1); }
-.toast.info { border-color: var(--gold); background: rgba(245,197,24,0.05); }
-.toast.error { border-color: #c0392b; }
-@keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:7px;}
+.toast{background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:11px 16px;font-size:13px;min-width:220px;animation:toastIn .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.toast.win{border-color:#27ae60;background:rgba(39,174,96,.1);}
+.toast.loss{border-color:#c0392b;background:rgba(192,57,43,.1);}
+.toast.info{border-color:var(--gold);background:rgba(245,197,24,.05);}
+.toast.error{border-color:#c0392b;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
-/* ── Modal ── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-}
-.modal-overlay.hidden { display: none; }
-.modal {
-  background: var(--dark2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 32px;
-  width: 360px;
-  max-width: 90vw;
-}
-.modal h2 {
-  font-family: 'Chakra Petch', monospace;
-  color: var(--gold);
-  margin-bottom: 24px;
-  font-size: 20px;
-}
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
-.form-group input {
-  width: 100%;
-  background: var(--dark3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 11px 14px;
-  color: var(--text);
-  font-size: 15px;
-  font-family: inherit;
-  outline: none;
-  transition: border 0.2s;
-}
-.form-group input:focus { border-color: var(--gold); }
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.btn-primary {
-  flex: 1;
-  background: linear-gradient(135deg, var(--gold), var(--gold2));
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  font-family: inherit;
-}
-.btn-secondary {
-  background: var(--dark3);
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 18px;
-  cursor: pointer;
-  font-family: inherit;
-}
-.modal-switch { text-align: center; margin-top: 14px; font-size: 13px; color: var(--muted); }
-.modal-switch a { color: var(--gold); cursor: pointer; text-decoration: none; }
-.error-msg { color: #e74c3c; font-size: 13px; margin-top: 8px; }
-
-/* Notification bar */
-.notif-bar {
-  background: linear-gradient(90deg, rgba(192,57,43,0.15), rgba(245,197,24,0.1), rgba(192,57,43,0.15));
-  border-bottom: 1px solid rgba(245,197,24,0.2);
-  padding: 8px 24px;
-  font-size: 13px;
-  color: var(--muted);
-  overflow: hidden;
-}
-.notif-inner { white-space: nowrap; animation: marquee 30s linear infinite; display: inline-block; }
-@keyframes marquee { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
-
-/* Rolling animation */
-.rolling-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-  z-index: 10;
-}
-.rolling-text {
-  font-family: 'Chakra Petch', monospace;
-  font-size: 24px;
-  color: var(--gold);
-  animation: blink 0.5s infinite alternate;
-}
-@keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
-
-.empty-state { color: var(--muted); font-size: 13px; text-align: center; padding: 20px 0; }
-
-.total-bet-info {
-  text-align: center;
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-.total-bet-info span { color: var(--gold); font-weight: 600; }
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--dark2);border:1px solid var(--border);border-radius:16px;padding:30px;width:350px;max-width:92vw;}
+.modal h2{font-family:'Chakra Petch',monospace;color:var(--gold);margin-bottom:22px;font-size:18px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.form-group input{width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border .2s;}
+.form-group input:focus{border-color:var(--gold);}
+.modal-actions{display:flex;gap:9px;margin-top:18px;}
+.btn-primary{flex:1;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;border:none;border-radius:8px;padding:11px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
+.btn-secondary{background:var(--dark3);color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:11px 16px;cursor:pointer;font-family:inherit;}
+.modal-switch{text-align:center;margin-top:12px;font-size:12px;color:var(--muted);}
+.modal-switch a{color:var(--gold);cursor:pointer;}
+.error-msg{color:#e74c3c;font-size:12px;margin-top:6px;}
 </style>
 </head>
 <body>
 
-<!-- Modal Auth -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
     <h2 id="modalTitle">🔐 Đăng nhập</h2>
-    <div class="form-group">
-      <label>Tên đăng nhập</label>
-      <input type="text" id="authUsername" placeholder="Nhập username...">
-    </div>
-    <div class="form-group">
-      <label>Mật khẩu</label>
-      <input type="password" id="authPassword" placeholder="Nhập mật khẩu...">
-    </div>
+    <div class="form-group"><label>Tên đăng nhập</label><input type="text" id="authUsername" placeholder="Username..."></div>
+    <div class="form-group"><label>Mật khẩu</label><input type="password" id="authPassword" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')submitAuth()"></div>
     <p class="error-msg" id="authError"></p>
     <div class="modal-actions">
       <button class="btn-primary" id="authSubmitBtn" onclick="submitAuth()">Đăng nhập</button>
     </div>
-    <div class="modal-switch">
-      <span id="modalSwitchText">Chưa có tài khoản?</span>
-      <a id="modalSwitchLink" onclick="toggleAuthMode()"> Đăng ký ngay</a>
-    </div>
+    <div class="modal-switch"><span id="msText">Chưa có tài khoản?</span> <a id="msLink" onclick="toggleAuthMode()">Đăng ký ngay</a></div>
   </div>
 </div>
 
-<!-- Toast Container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Header -->
 <header class="header">
   <div class="logo">VN<span>●</span>CASINO</div>
   <div class="header-right" id="headerRight">
@@ -638,51 +189,30 @@ body::before {
   </div>
 </header>
 
-<!-- Notif Bar -->
 <div class="notif-bar">
-  <span class="notif-inner">🎰 Chào mừng đến VN Casino – Nền tảng nghiên cứu hành vi cờ bạc &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 🔞 Chỉ dành cho người từ 18 tuổi &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; ⚠️ Cờ bạc có thể gây nghiện – Hãy chơi có trách nhiệm &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 📊 Dữ liệu được thu thập cho mục đích nghiên cứu học thuật</span>
+  <div class="notif-inner" id="bannerInner">🎰 Đang tải thông tin...</div>
 </div>
 
-<!-- Tabs -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('taixiu', this)">🎲 TÀI XỈU</button>
-  <button class="tab-btn" onclick="switchTab('baucua', this)">🦀 BẦU CUA</button>
-  <button class="tab-btn" onclick="switchTab('xocdia', this)">🥣 XÓC ĐĨA</button>
+  <button class="tab-btn active" onclick="switchTab('taixiu',this)">🎲 TÀI XỈU</button>
+  <button class="tab-btn" onclick="switchTab('baucua',this)">🦀 BẦU CUA</button>
+  <button class="tab-btn" onclick="switchTab('xocdia',this)">🥣 XÓC ĐĨA</button>
 </div>
 
-<!-- ══════════ TÀI XỈU ══════════ -->
+<!-- TÀI XỈU -->
 <div class="game-panel active" id="panel-taixiu">
   <div class="game-container">
-    <div class="main-col">
+    <div>
       <div class="round-status">
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-family:'Chakra Petch',monospace;letter-spacing:1px">PHIÊN CƯỢC</div>
-          <div id="tx-sessionId" style="font-size:13px;color:var(--text)">--</div>
-        </div>
-        <div style="text-align:center">
-          <div class="phase-badge phase-BETTING" id="tx-phase">BETTING</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Còn lại</div>
-          <div class="countdown" id="tx-countdown">15</div>
-        </div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-family:'Chakra Petch',monospace">PHIÊN</div><div id="tx-sid" style="font-size:12px">--</div></div>
+        <div class="phase-badge phase-BETTING" id="tx-phase">ĐẶT CƯỢC</div>
+        <div style="text-align:right"><div style="font-size:11px;color:var(--muted);margin-bottom:2px">Còn lại</div><div class="countdown" id="tx-cd">15</div></div>
       </div>
-
-      <!-- Dice -->
-      <div class="dice-area" id="tx-diceArea">
-        <div id="tx-rollingOverlay" class="rolling-overlay" style="display:none">
-          <span class="rolling-text">ĐANG LẮC...</span>
-        </div>
-        <div id="tx-diceContainer">
-          <span class="dice-placeholder">🎲</span>
-          <span class="dice-placeholder">🎲</span>
-          <span class="dice-placeholder">🎲</span>
-        </div>
+      <div class="dice-area" id="tx-area">
+        <div id="tx-roll" class="rolling-overlay" style="display:none"><span class="rolling-text">ĐANG LẮC...</span></div>
+        <div id="tx-dice"><span class="dice-placeholder">🎲</span><span class="dice-placeholder">🎲</span><span class="dice-placeholder">🎲</span></div>
       </div>
-
-      <div id="tx-resultBanner" style="display:none" class="result-banner"></div>
-
-      <!-- Bet Board -->
+      <div id="tx-banner" style="display:none" class="result-banner"></div>
       <div class="bet-board">
         <h3>🎯 Chọn cửa cược</h3>
         <div class="bet-options">
@@ -695,268 +225,137 @@ body::before {
             <span class="bet-amount-display" id="tx-amt-xiu">0đ</span>
           </button>
         </div>
-        <div style="margin-top:6px;padding:8px;background:rgba(245,197,24,0.05);border-radius:8px;font-size:11px;color:var(--muted)">
-          ⚠️ Ba con giống nhau (bộ ba) → tất cả cược đều thua (nhà cái ăn)
-        </div>
+        <div style="margin-top:6px;padding:7px;background:rgba(245,197,24,.04);border-radius:8px;font-size:11px;color:var(--muted)">⚠️ Bộ ba → nhà cái ăn toàn bộ</div>
       </div>
-
-      <!-- Chips & Place -->
+      <div id="tx-nobal" class="no-balance-box" style="display:none">
+        <div>💰 Số dư của bạn là <b>0đ</b> — không thể đặt cược!</div>
+        <button class="btn-nap-now" onclick="window.location.href='/payment'">+ Nạp tiền ngay</button>
+      </div>
       <div class="bet-board">
-        <h3>💰 Chọn mệnh giá chip</h3>
+        <h3>💰 Mệnh giá chip</h3>
         <div class="chip-row">
-          <div class="chip chip-1k" onclick="selectChip(1000, this)">1K</div>
-          <div class="chip chip-5k" onclick="selectChip(5000, this)">5K</div>
-          <div class="chip chip-10k" onclick="selectChip(10000, this)">10K</div>
-          <div class="chip chip-50k" onclick="selectChip(50000, this)">50K</div>
-          <div class="chip chip-100k" onclick="selectChip(100000, this)">100K</div>
-          <div class="chip chip-500k" onclick="selectChip(500000, this)">500K</div>
+          <div class="chip chip-1k" onclick="selectChip(1000,this)">1K</div>
+          <div class="chip chip-5k" onclick="selectChip(5000,this)">5K</div>
+          <div class="chip chip-10k active" onclick="selectChip(10000,this)">10K</div>
+          <div class="chip chip-50k" onclick="selectChip(50000,this)">50K</div>
+          <div class="chip chip-100k" onclick="selectChip(100000,this)">100K</div>
+          <div class="chip chip-500k" onclick="selectChip(500000,this)">500K</div>
         </div>
-        <div class="total-bet-info">Tổng cược: <span id="tx-totalBet">0đ</span></div>
+        <div class="total-bet-info">Tổng cược: <span id="tx-total">0đ</span></div>
         <div class="action-btns">
-          <button class="btn-place" id="tx-placeBet" onclick="placeBet('taixiu')">ĐẶT CƯỢC</button>
+          <button class="btn-place" id="tx-place" onclick="placeBet('taixiu')">ĐẶT CƯỢC</button>
           <button class="btn-clear" onclick="clearBets('taixiu')">Xóa</button>
         </div>
       </div>
     </div>
-
-    <!-- Sidebar -->
-    <div class="sidebar-col">
-      <div class="recent-results">
-        <h4>📊 Kết quả gần đây</h4>
-        <div class="result-dots" id="tx-recentResults">
-          <span class="empty-state">Đang tải...</span>
-        </div>
-      </div>
-      <div class="my-history">
-        <h4>📋 Lịch sử cược của tôi</h4>
-        <div id="tx-myHistory"><span class="empty-state">Chưa có lịch sử</span></div>
-      </div>
+    <div>
+      <div class="recent-results"><h4>📊 Kết quả gần đây</h4><div class="result-dots" id="tx-recent"><span class="empty-state">Đang tải...</span></div></div>
+      <div class="my-history"><h4>📋 Lịch sử của tôi</h4><div id="tx-hist"><span class="empty-state">Chưa có</span></div></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════ BẦU CUA ══════════ -->
+<!-- BẦU CUA -->
 <div class="game-panel" id="panel-baucua">
   <div class="game-container">
-    <div class="main-col">
+    <div>
       <div class="round-status">
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-family:'Chakra Petch',monospace;letter-spacing:1px">PHIÊN CƯỢC</div>
-          <div id="bc-sessionId" style="font-size:13px">--</div>
-        </div>
-        <div style="text-align:center">
-          <div class="phase-badge phase-BETTING" id="bc-phase">BETTING</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Còn lại</div>
-          <div class="countdown" id="bc-countdown">15</div>
-        </div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-family:'Chakra Petch',monospace">PHIÊN</div><div id="bc-sid" style="font-size:12px">--</div></div>
+        <div class="phase-badge phase-BETTING" id="bc-phase">ĐẶT CƯỢC</div>
+        <div style="text-align:right"><div style="font-size:11px;color:var(--muted);margin-bottom:2px">Còn lại</div><div class="countdown" id="bc-cd">15</div></div>
       </div>
-
-      <div class="dice-area" id="bc-diceArea">
-        <div id="bc-rollingOverlay" class="rolling-overlay" style="display:none">
-          <span class="rolling-text">ĐANG LẮC...</span>
-        </div>
-        <div id="bc-diceContainer" style="display:flex;gap:16px">
-          <div class="baucua-dice">🎲</div>
-          <div class="baucua-dice">🎲</div>
-          <div class="baucua-dice">🎲</div>
-        </div>
+      <div class="dice-area" id="bc-area">
+        <div id="bc-roll" class="rolling-overlay" style="display:none"><span class="rolling-text">ĐANG LẮC...</span></div>
+        <div id="bc-dice" style="display:flex;gap:14px"><div class="baucua-dice">🎲</div><div class="baucua-dice">🎲</div><div class="baucua-dice">🎲</div></div>
       </div>
-
-      <div id="bc-resultBanner" style="display:none" class="result-banner" style="color:var(--gold)"></div>
-
+      <div id="bc-banner" style="display:none" class="result-banner" style="color:var(--gold)"></div>
       <div class="bet-board">
         <h3>🎯 Chọn con vật</h3>
-        <div class="baucua-grid" id="bc-betGrid">
-          <button class="baucua-btn" id="bc-btn-bau" onclick="bcBet('bau',this)">
-            <span class="baucua-emoji">🍐</span>
-            <span class="baucua-name">BẦU</span>
-            <span class="baucua-amount" id="bc-amt-bau">0đ</span>
-          </button>
-          <button class="baucua-btn" id="bc-btn-cua" onclick="bcBet('cua',this)">
-            <span class="baucua-emoji">🦀</span>
-            <span class="baucua-name">CUA</span>
-            <span class="baucua-amount" id="bc-amt-cua">0đ</span>
-          </button>
-          <button class="baucua-btn" id="bc-btn-tom" onclick="bcBet('tom',this)">
-            <span class="baucua-emoji">🦐</span>
-            <span class="baucua-name">TÔM</span>
-            <span class="baucua-amount" id="bc-amt-tom">0đ</span>
-          </button>
-          <button class="baucua-btn" id="bc-btn-ca" onclick="bcBet('ca',this)">
-            <span class="baucua-emoji">🐟</span>
-            <span class="baucua-name">CÁ</span>
-            <span class="baucua-amount" id="bc-amt-ca">0đ</span>
-          </button>
-          <button class="baucua-btn" id="bc-btn-ga" onclick="bcBet('ga',this)">
-            <span class="baucua-emoji">🐓</span>
-            <span class="baucua-name">GÀ</span>
-            <span class="baucua-amount" id="bc-amt-ga">0đ</span>
-          </button>
-          <button class="baucua-btn" id="bc-btn-nai" onclick="bcBet('nai',this)">
-            <span class="baucua-emoji">🦌</span>
-            <span class="baucua-name">NAI</span>
-            <span class="baucua-amount" id="bc-amt-nai">0đ</span>
-          </button>
+        <div class="baucua-grid">
+          <button class="baucua-btn" id="bc-btn-bau" onclick="toggleBet('baucua','bau',this)"><span class="baucua-emoji">🍐</span><span class="baucua-name">BẦU</span><span class="baucua-amount" id="bc-amt-bau">0đ</span></button>
+          <button class="baucua-btn" id="bc-btn-cua" onclick="toggleBet('baucua','cua',this)"><span class="baucua-emoji">🦀</span><span class="baucua-name">CUA</span><span class="baucua-amount" id="bc-amt-cua">0đ</span></button>
+          <button class="baucua-btn" id="bc-btn-tom" onclick="toggleBet('baucua','tom',this)"><span class="baucua-emoji">🦐</span><span class="baucua-name">TÔM</span><span class="baucua-amount" id="bc-amt-tom">0đ</span></button>
+          <button class="baucua-btn" id="bc-btn-ca" onclick="toggleBet('baucua','ca',this)"><span class="baucua-emoji">🐟</span><span class="baucua-name">CÁ</span><span class="baucua-amount" id="bc-amt-ca">0đ</span></button>
+          <button class="baucua-btn" id="bc-btn-ga" onclick="toggleBet('baucua','ga',this)"><span class="baucua-emoji">🐓</span><span class="baucua-name">GÀ</span><span class="baucua-amount" id="bc-amt-ga">0đ</span></button>
+          <button class="baucua-btn" id="bc-btn-nai" onclick="toggleBet('baucua','nai',this)"><span class="baucua-emoji">🦌</span><span class="baucua-name">NAI</span><span class="baucua-amount" id="bc-amt-nai">0đ</span></button>
         </div>
-        <div style="margin-top:10px;padding:8px;background:rgba(245,197,24,0.05);border-radius:8px;font-size:11px;color:var(--muted)">
-          💡 1 trúng = ăn 1:1 &nbsp;|&nbsp; 2 trúng = ăn 1:2 &nbsp;|&nbsp; 3 trúng = ăn 1:3
-        </div>
+        <div style="margin-top:8px;padding:7px;background:rgba(245,197,24,.04);border-radius:8px;font-size:11px;color:var(--muted)">💡 1 trúng=1:1 &nbsp;|&nbsp; 2 trúng=1:2 &nbsp;|&nbsp; 3 trúng=1:3</div>
       </div>
-
+      <div id="bc-nobal" class="no-balance-box" style="display:none"><div>💰 Số dư <b>0đ</b> — không thể cược!</div><button class="btn-nap-now" onclick="window.location.href='/payment'">+ Nạp tiền</button></div>
       <div class="bet-board">
-        <h3>💰 Mệnh giá chip</h3>
-        <div class="chip-row">
-          <div class="chip chip-1k" onclick="selectChip(1000, this)">1K</div>
-          <div class="chip chip-5k" onclick="selectChip(5000, this)">5K</div>
-          <div class="chip chip-10k" onclick="selectChip(10000, this)">10K</div>
-          <div class="chip chip-50k" onclick="selectChip(50000, this)">50K</div>
-          <div class="chip chip-100k" onclick="selectChip(100000, this)">100K</div>
-          <div class="chip chip-500k" onclick="selectChip(500000, this)">500K</div>
-        </div>
-        <div class="total-bet-info">Tổng cược: <span id="bc-totalBet">0đ</span></div>
-        <div class="action-btns">
-          <button class="btn-place" id="bc-placeBet" onclick="placeBet('baucua')">ĐẶT CƯỢC</button>
-          <button class="btn-clear" onclick="clearBets('baucua')">Xóa</button>
-        </div>
+        <h3>💰 Mệnh giá</h3>
+        <div class="chip-row"><div class="chip chip-1k" onclick="selectChip(1000,this)">1K</div><div class="chip chip-5k" onclick="selectChip(5000,this)">5K</div><div class="chip chip-10k active" onclick="selectChip(10000,this)">10K</div><div class="chip chip-50k" onclick="selectChip(50000,this)">50K</div><div class="chip chip-100k" onclick="selectChip(100000,this)">100K</div><div class="chip chip-500k" onclick="selectChip(500000,this)">500K</div></div>
+        <div class="total-bet-info">Tổng: <span id="bc-total">0đ</span></div>
+        <div class="action-btns"><button class="btn-place" id="bc-place" onclick="placeBet('baucua')">ĐẶT CƯỢC</button><button class="btn-clear" onclick="clearBets('baucua')">Xóa</button></div>
       </div>
     </div>
-
-    <div class="sidebar-col">
-      <div class="recent-results">
-        <h4>📊 Kết quả gần đây</h4>
-        <div class="result-dots" id="bc-recentResults"><span class="empty-state">Đang tải...</span></div>
-      </div>
-      <div class="my-history">
-        <h4>📋 Lịch sử của tôi</h4>
-        <div id="bc-myHistory"><span class="empty-state">Chưa có</span></div>
-      </div>
+    <div>
+      <div class="recent-results"><h4>📊 Kết quả gần đây</h4><div class="result-dots" id="bc-recent"><span class="empty-state">Đang tải...</span></div></div>
+      <div class="my-history"><h4>📋 Lịch sử của tôi</h4><div id="bc-hist"><span class="empty-state">Chưa có</span></div></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════ XÓC ĐĨA ══════════ -->
+<!-- XÓC ĐĨA -->
 <div class="game-panel" id="panel-xocdia">
   <div class="game-container">
-    <div class="main-col">
+    <div>
       <div class="round-status">
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:4px;font-family:'Chakra Petch',monospace;letter-spacing:1px">PHIÊN CƯỢC</div>
-          <div id="xd-sessionId" style="font-size:13px">--</div>
-        </div>
-        <div style="text-align:center">
-          <div class="phase-badge phase-BETTING" id="xd-phase">BETTING</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Còn lại</div>
-          <div class="countdown" id="xd-countdown">15</div>
-        </div>
+        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px;font-family:'Chakra Petch',monospace">PHIÊN</div><div id="xd-sid" style="font-size:12px">--</div></div>
+        <div class="phase-badge phase-BETTING" id="xd-phase">ĐẶT CƯỢC</div>
+        <div style="text-align:right"><div style="font-size:11px;color:var(--muted);margin-bottom:2px">Còn lại</div><div class="countdown" id="xd-cd">15</div></div>
       </div>
-
-      <div class="dice-area" id="xd-diceArea" style="min-height:180px">
-        <div id="xd-rollingOverlay" class="rolling-overlay" style="display:none">
-          <span class="rolling-text">ĐANG XÓC...</span>
-        </div>
-        <div id="xd-coinContainer" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
-          <div class="coin do">Đ</div>
-          <div class="coin do">Đ</div>
-          <div class="coin trang">T</div>
-          <div class="coin trang">T</div>
-        </div>
+      <div class="dice-area" id="xd-area" style="min-height:170px">
+        <div id="xd-roll" class="rolling-overlay" style="display:none"><span class="rolling-text">ĐANG XÓC...</span></div>
+        <div id="xd-coins" style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center"><div class="coin do">Đ</div><div class="coin do">Đ</div><div class="coin trang">T</div><div class="coin trang">T</div></div>
       </div>
-
-      <div id="xd-resultBanner" style="display:none" class="result-banner"></div>
-
+      <div id="xd-banner" style="display:none" class="result-banner"></div>
       <div class="bet-board">
         <h3>🎯 Chọn cửa cược</h3>
-        <div class="xocdia-options" style="margin-bottom:12px">
-          <button class="bet-btn" id="xd-btn-chan" onclick="toggleBet('xocdia','chan',this)">
-            <span class="bet-label"><span class="bet-icon">🟢</span><span>CHẴN<br><small class="odds">Tỷ lệ 1:1</small></span></span>
-            <span class="bet-amount-display" id="xd-amt-chan">0đ</span>
-          </button>
-          <button class="bet-btn" id="xd-btn-le" onclick="toggleBet('xocdia','le',this)">
-            <span class="bet-label"><span class="bet-icon">🟣</span><span>LẺ<br><small class="odds">Tỷ lệ 1:1</small></span></span>
-            <span class="bet-amount-display" id="xd-amt-le">0đ</span>
-          </button>
+        <div class="xocdia-options" style="margin-bottom:10px">
+          <button class="bet-btn" id="xd-btn-chan" onclick="toggleBet('xocdia','chan',this)"><span class="bet-label"><span class="bet-icon">🟢</span><span>CHẴN<br><small class="odds">1:1</small></span></span><span class="bet-amount-display" id="xd-amt-chan">0đ</span></button>
+          <button class="bet-btn" id="xd-btn-le" onclick="toggleBet('xocdia','le',this)"><span class="bet-label"><span class="bet-icon">🟣</span><span>LẺ<br><small class="odds">1:1</small></span></span><span class="bet-amount-display" id="xd-amt-le">0đ</span></button>
         </div>
-        <div style="font-size:11px;color:var(--gold);margin-bottom:8px;font-family:'Chakra Petch',monospace">⭐ CƯỢC ĐẶC BIỆT</div>
+        <div style="font-size:11px;color:var(--gold);margin-bottom:7px;font-family:'Chakra Petch',monospace">⭐ ĐẶC BIỆT</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="bet-btn" id="xd-btn-bondo" onclick="toggleBet('xocdia','bondo',this)">
-            <span class="bet-label"><span class="bet-icon">🔴</span><span>4 ĐỎ<br><small class="odds">Tỷ lệ 1:12</small></span></span>
-            <span class="bet-amount-display" id="xd-amt-bondo">0đ</span>
-          </button>
-          <button class="bet-btn" id="xd-btn-bongtrang" onclick="toggleBet('xocdia','bongtrang',this)">
-            <span class="bet-label"><span class="bet-icon">⚪</span><span>4 TRẮNG<br><small class="odds">Tỷ lệ 1:12</small></span></span>
-            <span class="bet-amount-display" id="xd-amt-bongtrang">0đ</span>
-          </button>
-        </div>
-        <div style="margin-top:10px;padding:8px;background:rgba(245,197,24,0.05);border-radius:8px;font-size:11px;color:var(--muted)">
-          💡 Chẵn: số đồng đỏ là chẵn (0,2,4) &nbsp;|&nbsp; Lẻ: số đồng đỏ là lẻ (1,3)
+          <button class="bet-btn" id="xd-btn-bondo" onclick="toggleBet('xocdia','bondo',this)"><span class="bet-label"><span class="bet-icon">🔴</span><span>4 ĐỎ<br><small class="odds">1:12</small></span></span><span class="bet-amount-display" id="xd-amt-bondo">0đ</span></button>
+          <button class="bet-btn" id="xd-btn-bongtrang" onclick="toggleBet('xocdia','bongtrang',this)"><span class="bet-label"><span class="bet-icon">⚪</span><span>4 TRẮNG<br><small class="odds">1:12</small></span></span><span class="bet-amount-display" id="xd-amt-bongtrang">0đ</span></button>
         </div>
       </div>
-
+      <div id="xd-nobal" class="no-balance-box" style="display:none"><div>💰 Số dư <b>0đ</b> — không thể cược!</div><button class="btn-nap-now" onclick="window.location.href='/payment'">+ Nạp tiền</button></div>
       <div class="bet-board">
-        <h3>💰 Mệnh giá chip</h3>
-        <div class="chip-row">
-          <div class="chip chip-1k" onclick="selectChip(1000, this)">1K</div>
-          <div class="chip chip-5k" onclick="selectChip(5000, this)">5K</div>
-          <div class="chip chip-10k" onclick="selectChip(10000, this)">10K</div>
-          <div class="chip chip-50k" onclick="selectChip(50000, this)">50K</div>
-          <div class="chip chip-100k" onclick="selectChip(100000, this)">100K</div>
-          <div class="chip chip-500k" onclick="selectChip(500000, this)">500K</div>
-        </div>
-        <div class="total-bet-info">Tổng cược: <span id="xd-totalBet">0đ</span></div>
-        <div class="action-btns">
-          <button class="btn-place" id="xd-placeBet" onclick="placeBet('xocdia')">ĐẶT CƯỢC</button>
-          <button class="btn-clear" onclick="clearBets('xocdia')">Xóa</button>
-        </div>
+        <h3>💰 Mệnh giá</h3>
+        <div class="chip-row"><div class="chip chip-1k" onclick="selectChip(1000,this)">1K</div><div class="chip chip-5k" onclick="selectChip(5000,this)">5K</div><div class="chip chip-10k active" onclick="selectChip(10000,this)">10K</div><div class="chip chip-50k" onclick="selectChip(50000,this)">50K</div><div class="chip chip-100k" onclick="selectChip(100000,this)">100K</div><div class="chip chip-500k" onclick="selectChip(500000,this)">500K</div></div>
+        <div class="total-bet-info">Tổng: <span id="xd-total">0đ</span></div>
+        <div class="action-btns"><button class="btn-place" id="xd-place" onclick="placeBet('xocdia')">ĐẶT CƯỢC</button><button class="btn-clear" onclick="clearBets('xocdia')">Xóa</button></div>
       </div>
     </div>
-
-    <div class="sidebar-col">
-      <div class="recent-results">
-        <h4>📊 Kết quả gần đây</h4>
-        <div class="result-dots" id="xd-recentResults"><span class="empty-state">Đang tải...</span></div>
-      </div>
-      <div class="my-history">
-        <h4>📋 Lịch sử của tôi</h4>
-        <div id="xd-myHistory"><span class="empty-state">Chưa có</span></div>
-      </div>
+    <div>
+      <div class="recent-results"><h4>📊 Kết quả gần đây</h4><div class="result-dots" id="xd-recent"><span class="empty-state">Đang tải...</span></div></div>
+      <div class="my-history"><h4>📋 Lịch sử của tôi</h4><div id="xd-hist"><span class="empty-state">Chưa có</span></div></div>
     </div>
   </div>
 </div>
 
 <script>
-// ========== ĐÃ SỬA: Dùng window.location.origin thay vì localhost ==========
-const API = window.location.origin;
-let socket = null;
-let token = localStorage.getItem('token');
-let balance = 0;
-let username = '';
-let selectedChip = 10000;
-let isAuthMode = 'login';
+const API = '';
+let socket, token = localStorage.getItem('token');
+let balance = 0, username = '', authMode = 'login', selectedChip = 10000;
+const bets = { taixiu:{}, baucua:{}, xocdia:{} };
+const BC_EMOJI = {bau:'🍐',cua:'🦀',tom:'🦐',ca:'🐟',ga:'🐓',nai:'🦌'};
+const DICE_FACES = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+const PFX = {taixiu:'tx',baucua:'bc',xocdia:'xd'};
 
-// Bet state per game
-const betState = {
-  taixiu: {},
-  baucua: {},
-  xocdia: {}
-};
-
-const BAU_CUA_EMOJI = { bau:'🍐', cua:'🦀', tom:'🦐', ca:'🐟', ga:'🐓', nai:'🦌' };
-const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-
-// ── Init ────────────────────────────────────────────────────────────────────
 window.onload = async () => {
+  loadBanner();
+  loadRecentResults();
   if (token) {
     try {
-      const res = await fetch(`${API}/api/me`, { headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) {
-        const data = await res.json();
-        setLoggedIn(data.username, data.balance);
+      const r = await fetch(`${API}/api/me`, { headers:{Authorization:`Bearer ${token}`} });
+      if (r.ok) {
+        const d = await r.json();
+        setLoggedIn(d.username, d.balance);
         connectSocket();
-        loadRecentResults();
         return;
       }
     } catch {}
@@ -964,340 +363,289 @@ window.onload = async () => {
   }
   document.getElementById('authModal').classList.remove('hidden');
   connectSocket();
-  loadRecentResults();
 };
 
-// ========== ĐÃ SỬA: Socket.IO kết nối đến cùng domain ==========
+// ── Banner ──────────────────────────────────────────────────────────────────
+async function loadBanner() {
+  try {
+    const r = await fetch(`${API}/api/banners`);
+    const d = await r.json();
+    buildBannerText(d);
+  } catch {}
+}
+
+function buildBannerText(d) {
+  const depStr = fmtLarge(d.totalDeposit);
+  const wdStr = fmtLarge(d.totalWithdraw);
+  let parts = [
+    `💰 Tổng tiền đã nạp: ${depStr}đ`,
+    `💸 Tổng tiền đã rút: ${wdStr}đ`,
+    `🔞 Chỉ dành cho người từ 18 tuổi`,
+    `⚠️ Cờ bạc có thể gây nghiện – chơi có trách nhiệm`
+  ];
+  if (d.custom) {
+    d.custom.forEach(c => { if (c.value) parts.push(`${c.label ? c.label+': ' : ''}${c.value}`); });
+  }
+  document.getElementById('bannerInner').textContent = parts.join('   ·   ');
+}
+
+// ── Socket ──────────────────────────────────────────────────────────────────
 function connectSocket() {
   socket = io();
-  socket.on('connect', () => {
-    console.log('Socket connected');
-    if (token) socket.emit('auth', token);
+  socket.on('connect', () => { if (token) socket.emit('auth', token); });
+  ['taixiu','baucua','xocdia'].forEach(g => {
+    socket.on(`${g}:state`, d => initState(g, d));
+    socket.on(`${g}:tick`, d => updateCD(g, d));
+    socket.on(`${g}:rolling`, () => showRolling(g));
+    socket.on(`${g}:result`, d => showResult(g, d));
+    socket.on(`${g}:new_round`, d => newRound(g, d));
+    socket.on(`${g}:bet_result`, d => handleBetResult(d));
   });
-
-  // Tài Xỉu events
-  socket.on('taixiu:state', d => updateGameState('taixiu', d));
-  socket.on('taixiu:tick', d => updateCountdown('taixiu', d));
-  socket.on('taixiu:rolling', () => showRolling('taixiu'));
-  socket.on('taixiu:result', d => showResult('taixiu', d));
-  socket.on('taixiu:new_round', d => newRound('taixiu', d));
-  socket.on('taixiu:bet_result', d => handleBetResult(d));
-
-  // Bầu Cua events
-  socket.on('baucua:state', d => updateGameState('baucua', d));
-  socket.on('baucua:tick', d => updateCountdown('baucua', d));
-  socket.on('baucua:rolling', () => showRolling('baucua'));
-  socket.on('baucua:result', d => showResult('baucua', d));
-  socket.on('baucua:new_round', d => newRound('baucua', d));
-  socket.on('baucua:bet_result', d => handleBetResult(d));
-
-  // Xóc Đĩa events
-  socket.on('xocdia:state', d => updateGameState('xocdia', d));
-  socket.on('xocdia:tick', d => updateCountdown('xocdia', d));
-  socket.on('xocdia:rolling', () => showRolling('xocdia'));
-  socket.on('xocdia:result', d => showResult('xocdia', d));
-  socket.on('xocdia:new_round', d => newRound('xocdia', d));
-  socket.on('xocdia:bet_result', d => handleBetResult(d));
-
-  socket.on('balance_update', d => { balance = d.balance; updateBalanceDisplay(); });
-  socket.on('bet_accepted', d => { balance = d.balance; updateBalanceDisplay(); toast('✅ Đặt cược thành công!', 'info'); });
+  socket.on('balance_update', d => { balance = d.balance; updateBalDisplay(); updateNoBalBoxes(); });
+  socket.on('bet_accepted', d => { balance = d.balance; updateBalDisplay(); updateNoBalBoxes(); toast('✅ Đã đặt cược!', 'info'); });
   socket.on('bet_error', d => toast('❌ ' + d.error, 'error'));
+  socket.on('banner_update', () => loadBanner());
+  socket.on('deposit_approved', d => {
+    balance = d.balance; updateBalDisplay(); updateNoBalBoxes();
+    toast(`🎉 Nạp ${fmt(d.amount)}đ thành công! Số dư: ${fmt(d.balance)}đ`, 'win');
+  });
+  socket.on('deposit_rejected', d => toast(`❌ Yêu cầu nạp bị từ chối: ${d.adminNote}`, 'error'));
 }
 
-// ── Auth ────────────────────────────────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────────────────────
 function showAuth() { document.getElementById('authModal').classList.remove('hidden'); }
 function toggleAuthMode() {
-  isAuthMode = isAuthMode === 'login' ? 'register' : 'login';
-  const isLogin = isAuthMode === 'login';
-  document.getElementById('modalTitle').textContent = isLogin ? '🔐 Đăng nhập' : '📝 Đăng ký';
-  document.getElementById('authSubmitBtn').textContent = isLogin ? 'Đăng nhập' : 'Đăng ký';
-  document.getElementById('modalSwitchText').textContent = isLogin ? 'Chưa có tài khoản?' : 'Đã có tài khoản?';
-  document.getElementById('modalSwitchLink').textContent = isLogin ? ' Đăng ký ngay' : ' Đăng nhập';
-  document.getElementById('authError').textContent = '';
+  authMode = authMode==='login'?'register':'login';
+  const isL = authMode==='login';
+  document.getElementById('modalTitle').textContent = isL?'🔐 Đăng nhập':'📝 Đăng ký';
+  document.getElementById('authSubmitBtn').textContent = isL?'Đăng nhập':'Đăng ký';
+  document.getElementById('msText').textContent = isL?'Chưa có tài khoản?':'Đã có tài khoản?';
+  document.getElementById('msLink').textContent = isL?' Đăng ký ngay':' Đăng nhập';
+  document.getElementById('authError').textContent='';
 }
-
 async function submitAuth() {
-  const username2 = document.getElementById('authUsername').value.trim();
-  const password = document.getElementById('authPassword').value;
-  if (!username2 || !password) { document.getElementById('authError').textContent = 'Vui lòng điền đầy đủ'; return; }
-  const endpoint = isAuthMode === 'login' ? '/api/login' : '/api/register';
+  const u = document.getElementById('authUsername').value.trim();
+  const p = document.getElementById('authPassword').value;
+  if (!u||!p){document.getElementById('authError').textContent='Vui lòng điền đầy đủ';return;}
+  const ep = authMode==='login'?'/api/login':'/api/register';
   try {
-    const res = await fetch(API + endpoint, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: username2, password })
-    });
-    const data = await res.json();
-    if (!res.ok) { document.getElementById('authError').textContent = data.error; return; }
-    token = data.token;
-    localStorage.setItem('token', token);
-    setLoggedIn(data.username, data.balance);
+    const r = await fetch(API+ep, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
+    const d = await r.json();
+    if (!r.ok) { document.getElementById('authError').textContent = d.error; return; }
+    token = d.token; localStorage.setItem('token', token);
+    setLoggedIn(d.username, d.balance);
     document.getElementById('authModal').classList.add('hidden');
     socket.emit('auth', token);
     loadRecentResults();
-    toast('🎉 Chào mừng ' + data.username + '!', 'info');
-  } catch(e) { document.getElementById('authError').textContent = 'Lỗi kết nối server'; }
+    toast(`🎉 Chào mừng ${d.username}!`, 'info');
+  } catch { document.getElementById('authError').textContent = 'Lỗi kết nối'; }
 }
 
 function setLoggedIn(u, b) {
   username = u; balance = b;
   document.getElementById('headerRight').innerHTML = `
     <span class="username-tag">👤 ${u}</span>
-    <div class="balance-display">💰 <span id="balanceAmt">${fmt(b)}</span>đ</div>
+    <div class="balance-display">💰 <span id="balAmt">${fmt(balance)}</span>đ</div>
+    <button class="btn-nap" onclick="window.location.href='/payment'">+ Nạp tiền</button>
     <button class="btn-logout" onclick="logout()">Đăng xuất</button>
   `;
+  updateNoBalBoxes();
 }
-function updateBalanceDisplay() {
-  const el = document.getElementById('balanceAmt');
-  if (el) el.textContent = fmt(balance);
+function updateBalDisplay() { const e=document.getElementById('balAmt'); if(e) e.textContent=fmt(balance); }
+function updateNoBalBoxes() {
+  ['taixiu','baucua','xocdia'].forEach(g => {
+    const p=PFX[g];
+    const box = document.getElementById(`${p}-nobal`);
+    if (box) box.style.display = (token && balance<=0) ? 'block' : 'none';
+  });
 }
-function logout() {
-  localStorage.removeItem('token');
-  token = null; username = ''; balance = 0;
-  document.getElementById('headerRight').innerHTML = `<button class="btn-auth" onclick="showAuth()">Đăng nhập</button>`;
-  showAuth();
-}
+function logout() { localStorage.removeItem('token'); token=null; username=''; balance=0; document.getElementById('headerRight').innerHTML=`<button class="btn-auth" onclick="showAuth()">Đăng nhập</button>`; showAuth(); }
 
-// ── Tabs ─────────────────────────────────────────────────────────────────────
-function switchTab(game, btn) {
-  document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`panel-${game}`).classList.add('active');
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(g, btn) {
+  document.querySelectorAll('.game-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`panel-${g}`).classList.add('active');
   btn.classList.add('active');
-  if (token) loadHistory(game);
+  if(token) loadHistory(g);
 }
 
-// ── Chip & Bet ────────────────────────────────────────────────────────────────
-function selectChip(amount, el) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+// ── Chips & Betting ───────────────────────────────────────────────────────────
+function selectChip(amt, el) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  selectedChip = amount;
+  selectedChip = amt;
 }
 
 function toggleBet(game, choice, btn) {
-  if (!token) { toast('⚠️ Vui lòng đăng nhập để cược', 'error'); return; }
-  const prefix = { taixiu: 'tx', baucua: 'bc', xocdia: 'xd' }[game];
-  const phase = document.getElementById(`${prefix}-phase`).textContent;
-  if (phase !== 'BETTING') { toast('⏰ Phiên cược đã đóng!', 'error'); return; }
-  if (!betState[game][choice]) betState[game][choice] = 0;
-  betState[game][choice] += selectedChip;
+  if (!token) { toast('⚠️ Vui lòng đăng nhập', 'error'); return; }
+  if (balance <= 0) { toast('💰 Số dư không đủ! Hãy nạp tiền.', 'error'); return; }
+  const p = PFX[game];
+  if (document.getElementById(`${p}-phase`).textContent === 'ĐANG LẮC' || document.getElementById(`${p}-phase`).textContent === 'KẾT QUẢ') {
+    toast('⏰ Phiên cược đã đóng!', 'error'); return;
+  }
+  if (!bets[game][choice]) bets[game][choice] = 0;
+  bets[game][choice] += selectedChip;
   updateBetDisplay(game);
 }
-
-function bcBet(choice, btn) { toggleBet('baucua', choice, btn); }
 
 function updateBetDisplay(game) {
-  const prefix = { taixiu: 'tx', baucua: 'bc', xocdia: 'xd' }[game];
-  let total = 0;
-  for (const [choice, amt] of Object.entries(betState[game])) {
-    const el = document.getElementById(`${prefix}-amt-${choice}`);
-    if (el) el.textContent = amt > 0 ? fmt(amt) + 'đ' : '0đ';
-    const btn = document.getElementById(`${prefix}-btn-${choice}`);
-    if (btn) {
-      btn.classList.toggle('selected', amt > 0);
-      btn.classList.toggle(`selected-${choice}`, amt > 0);
-      if (game === 'baucua') btn.classList.toggle('selected', amt > 0);
-    }
-    total += amt;
+  const p=PFX[game]; let total=0;
+  for (const [c,a] of Object.entries(bets[game])) {
+    const el=document.getElementById(`${p}-amt-${c}`);
+    if(el) el.textContent = a>0?fmt(a)+'đ':'0đ';
+    const btn=document.getElementById(`${p}-btn-${c}`);
+    if(btn) { btn.classList.toggle('selected',a>0); btn.classList.toggle(`selected-${c}`,a>0); }
+    total+=a;
   }
-  document.getElementById(`${prefix}-totalBet`).textContent = fmt(total) + 'đ';
+  document.getElementById(`${p}-total`).textContent = fmt(total)+'đ';
 }
 
-function clearBets(game) {
-  betState[game] = {};
-  updateBetDisplay(game);
-}
+function clearBets(game) { bets[game]={}; updateBetDisplay(game); }
 
 async function placeBet(game) {
   if (!token) { toast('⚠️ Vui lòng đăng nhập', 'error'); return; }
-  const total = Object.values(betState[game]).reduce((s, v) => s + v, 0);
-  if (total <= 0) { toast('⚠️ Chưa chọn cửa cược', 'error'); return; }
-  if (total > balance) { toast('❌ Số dư không đủ!', 'error'); return; }
-  socket.emit('place_bet', { gameType: game, bets: { ...betState[game] }, token });
-  betState[game] = {};
-  updateBetDisplay(game);
+  const total = Object.values(bets[game]).reduce((s,v)=>s+v,0);
+  if (total<=0) { toast('⚠️ Chưa chọn cửa cược', 'error'); return; }
+  if (total>balance) { toast('❌ Số dư không đủ! Nạp tiền tại /payment', 'error'); return; }
+  socket.emit('place_bet', { gameType:game, bets:{...bets[game]}, token });
+  bets[game]={}; updateBetDisplay(game);
 }
 
-// ── Game State Updates ────────────────────────────────────────────────────────
-const pfx = { taixiu: 'tx', baucua: 'bc', xocdia: 'xd' };
-
-function updateGameState(game, data) {
-  const p = pfx[game];
-  setPhase(game, data.phase);
-  document.getElementById(`${p}-countdown`).textContent = data.countdown;
-  document.getElementById(`${p}-sessionId`).textContent = 'ID: ' + (data.sessionId || '').slice(-8);
-  if (data.phase === 'RESULT' && data.result) showResultVisual(game, data.result);
-  else if (data.phase === 'ROLLING') showRolling(game);
-  else resetDice(game);
+// ── Game State ────────────────────────────────────────────────────────────────
+function initState(g, d) {
+  const p=PFX[g];
+  setPhase(g, d.phase);
+  document.getElementById(`${p}-cd`).textContent = d.countdown;
+  document.getElementById(`${p}-sid`).textContent = 'ID:'+(d.sessionId||'').slice(-6);
+  if(d.phase==='RESULT'&&d.result) showResultVisual(g,d.result);
+  else if(d.phase==='ROLLING') showRolling(g);
+  else resetDice(g);
 }
 
-function updateCountdown(game, data) {
-  const p = pfx[game];
-  const el = document.getElementById(`${p}-countdown`);
-  el.textContent = data.countdown;
-  el.classList.toggle('urgent', data.countdown <= 5);
+function updateCD(g, d) {
+  const p=PFX[g]; const el=document.getElementById(`${p}-cd`);
+  el.textContent=d.countdown; el.classList.toggle('urgent',d.countdown<=5);
 }
 
-function setPhase(game, phase) {
-  const p = pfx[game];
-  const el = document.getElementById(`${p}-phase`);
-  el.textContent = { BETTING: 'ĐẶT CƯỢC', ROLLING: 'ĐANG LẮC', RESULT: 'KẾT QUẢ' }[phase] || phase;
-  el.className = `phase-badge phase-${phase}`;
-  const placeBtn = document.getElementById(`${p}-placeBet`);
-  if (placeBtn) placeBtn.disabled = phase !== 'BETTING';
+function setPhase(g, phase) {
+  const p=PFX[g];
+  const el=document.getElementById(`${p}-phase`);
+  el.textContent={BETTING:'ĐẶT CƯỢC',ROLLING:'ĐANG LẮC',RESULT:'KẾT QUẢ'}[phase]||phase;
+  el.className=`phase-badge phase-${phase}`;
+  const pb=document.getElementById(`${p}-place`);
+  if(pb) pb.disabled=phase!=='BETTING';
 }
 
-function showRolling(game) {
-  const p = pfx[game];
-  setPhase(game, 'ROLLING');
-  document.getElementById(`${p}-rollingOverlay`).style.display = 'flex';
-  document.getElementById(`${p}-resultBanner`).style.display = 'none';
-  if (game === 'taixiu') {
-    const c = document.getElementById('tx-diceContainer');
-    c.innerHTML = [1,2,3].map(() => `<div class="dice rolling">🎲</div>`).join('');
-  } else if (game === 'baucua') {
-    const c = document.getElementById('bc-diceContainer');
-    c.innerHTML = [1,2,3].map(() => `<div class="baucua-dice rolling">🎲</div>`).join('');
+function showRolling(g) {
+  const p=PFX[g]; setPhase(g,'ROLLING');
+  document.getElementById(`${p}-roll`).style.display='flex';
+  document.getElementById(`${p}-banner`).style.display='none';
+  if(g==='taixiu') document.getElementById('tx-dice').innerHTML=`<div class="dice rolling">🎲</div><div class="dice rolling">🎲</div><div class="dice rolling">🎲</div>`;
+  else if(g==='baucua') document.getElementById('bc-dice').innerHTML=`<div class="baucua-dice rolling">🎲</div><div class="baucua-dice rolling">🎲</div><div class="baucua-dice rolling">🎲</div>`;
+  else document.getElementById('xd-coins').innerHTML=`<div class="coin do">?</div><div class="coin do">?</div><div class="coin trang">?</div><div class="coin trang">?</div>`;
+}
+
+function showResult(g, d) {
+  const p=PFX[g]; document.getElementById(`${p}-roll`).style.display='none';
+  setPhase(g,'RESULT'); showResultVisual(g,d.result);
+  if(token){loadHistory(g);loadRecentResults();}
+}
+
+function showResultVisual(g, r) {
+  const p=PFX[g]; const banner=document.getElementById(`${p}-banner`);
+  banner.style.display='block'; document.getElementById(`${p}-roll`).style.display='none';
+  if(g==='taixiu'){
+    document.getElementById('tx-dice').innerHTML=r.dice.map(d=>`<div class="dice">${DICE_FACES[d]}</div>`).join('');
+    banner.className=`result-banner result-${r.isTriple?'triple':r.side}`;
+    banner.textContent=r.isTriple?`⚠️ BỘ BA (${r.dice.join('-')}=${r.sum}) – NHÀ CÁI ĂN TẤT`:`${r.side==='tai'?'🔴 TÀI':'🔵 XỈU'} (${r.dice.join('-')}=${r.sum})`;
+  } else if(g==='baucua'){
+    document.getElementById('bc-dice').innerHTML=r.dice.map(d=>`<div class="baucua-dice">${BC_EMOJI[d]}</div>`).join('');
+    banner.style.color='var(--gold)'; banner.textContent=r.dice.map(d=>BC_EMOJI[d]).join('  ');
   } else {
-    const c = document.getElementById('xd-coinContainer');
-    c.innerHTML = [1,2,3,4].map(() => `<div class="coin do rolling">?</div>`).join('');
+    document.getElementById('xd-coins').innerHTML=r.coins.map(c=>`<div class="coin ${c}">${c==='do'?'Đ':'T'}</div>`).join('');
+    banner.className=`result-banner result-${r.side}`;
+    banner.textContent=`${r.side==='chan'?'🟢 CHẴN':'🟣 LẺ'} (${r.redCount} đỏ – ${r.whiteCount} trắng)`;
   }
 }
 
-function showResult(game, data) {
-  const p = pfx[game];
-  document.getElementById(`${p}-rollingOverlay`).style.display = 'none';
-  setPhase(game, 'RESULT');
-  showResultVisual(game, data.result);
-  if (token) { loadHistory(game); loadRecentResults(); }
+function resetDice(g) {
+  const p=PFX[g]; document.getElementById(`${p}-roll`).style.display='none'; document.getElementById(`${p}-banner`).style.display='none';
+  if(g==='taixiu') document.getElementById('tx-dice').innerHTML=`<span class="dice-placeholder">🎲</span><span class="dice-placeholder">🎲</span><span class="dice-placeholder">🎲</span>`;
+  else if(g==='baucua') document.getElementById('bc-dice').innerHTML=`<div class="baucua-dice">🎲</div><div class="baucua-dice">🎲</div><div class="baucua-dice">🎲</div>`;
+  else document.getElementById('xd-coins').innerHTML=`<div class="coin do">Đ</div><div class="coin do">Đ</div><div class="coin trang">T</div><div class="coin trang">T</div>`;
 }
 
-function showResultVisual(game, result) {
-  const p = pfx[game];
-  const banner = document.getElementById(`${p}-resultBanner`);
-  banner.style.display = 'block';
-  document.getElementById(`${p}-rollingOverlay`).style.display = 'none';
-
-  if (game === 'taixiu') {
-    const c = document.getElementById('tx-diceContainer');
-    c.innerHTML = result.dice.map(d => `<div class="dice">${DICE_FACES[d]}</div>`).join('');
-    banner.className = `result-banner result-${result.isTriple ? 'triple' : result.side}`;
-    banner.textContent = result.isTriple
-      ? `⚠️ BỘ BA (${result.dice.join('-')}) = ${result.sum} — NHÀ CÁI ĂN TẤT`
-      : `${result.side === 'tai' ? '🔴 TÀI' : '🔵 XỈU'} (${result.dice.join('-')} = ${result.sum})`;
-
-  } else if (game === 'baucua') {
-    const c = document.getElementById('bc-diceContainer');
-    c.innerHTML = result.dice.map(d => `<div class="baucua-dice">${BAU_CUA_EMOJI[d]}</div>`).join('');
-    banner.style.color = 'var(--gold)';
-    banner.textContent = result.dice.map(d => BAU_CUA_EMOJI[d]).join('  ');
-
-  } else {
-    const c = document.getElementById('xd-coinContainer');
-    c.innerHTML = result.coins.map(coin =>
-      `<div class="coin ${coin}">${coin === 'do' ? 'Đ' : 'T'}</div>`
-    ).join('');
-    banner.className = `result-banner result-${result.side}`;
-    banner.textContent = `${result.side === 'chan' ? '🟢 CHẴN' : '🟣 LẺ'} (${result.redCount} đỏ – ${result.whiteCount} trắng)`;
-  }
+function newRound(g, d) {
+  const p=PFX[g]; setPhase(g,'BETTING');
+  document.getElementById(`${p}-sid`).textContent='ID:'+(d.sessionId||'').slice(-6);
+  document.getElementById(`${p}-cd`).classList.remove('urgent');
+  resetDice(g);
 }
 
-function resetDice(game) {
-  const p = pfx[game];
-  document.getElementById(`${p}-rollingOverlay`).style.display = 'none';
-  document.getElementById(`${p}-resultBanner`).style.display = 'none';
-  if (game === 'taixiu') {
-    document.getElementById('tx-diceContainer').innerHTML = `<span class="dice-placeholder">🎲</span><span class="dice-placeholder">🎲</span><span class="dice-placeholder">🎲</span>`;
-  } else if (game === 'baucua') {
-    document.getElementById('bc-diceContainer').innerHTML = `<div class="baucua-dice">🎲</div><div class="baucua-dice">🎲</div><div class="baucua-dice">🎲</div>`;
-  } else {
-    document.getElementById('xd-coinContainer').innerHTML = `<div class="coin do">Đ</div><div class="coin do">Đ</div><div class="coin trang">T</div><div class="coin trang">T</div>`;
-  }
-}
-
-function newRound(game, data) {
-  const p = pfx[game];
-  setPhase(game, 'BETTING');
-  document.getElementById(`${p}-sessionId`).textContent = 'ID: ' + (data.sessionId || '').slice(-8);
-  document.getElementById(`${p}-countdown`).classList.remove('urgent');
-  resetDice(game);
-}
-
-function handleBetResult(data) {
-  if (data.isWin) {
-    toast(`🎉 THẮNG! +${fmt(data.payout - data.amount)}đ`, 'win');
-  } else {
-    toast(`😔 Thua ${fmt(data.amount)}đ`, 'loss');
-  }
-  balance = data.balance;
-  updateBalanceDisplay();
+function handleBetResult(d) {
+  if(d.isWin) toast(`🎉 THẮNG! +${fmt(d.payout-d.amount)}đ`, 'win');
+  else toast(`😔 Thua ${fmt(d.amount)}đ`, 'loss');
+  balance=d.balance; updateBalDisplay(); updateNoBalBoxes();
 }
 
 // ── Recent Results ────────────────────────────────────────────────────────────
 async function loadRecentResults() {
-  for (const game of ['taixiu', 'baucua', 'xocdia']) {
+  for (const g of ['taixiu','baucua','xocdia']) {
     try {
-      const res = await fetch(`${API}/api/recent-results/${game}`);
-      const results = await res.json();
-      renderRecentResults(game, results);
+      const r = await fetch(`${API}/api/recent-results/${g}`);
+      const data = await r.json();
+      renderRecent(g, data);
     } catch {}
   }
 }
 
-function renderRecentResults(game, results) {
-  const p = pfx[game];
-  const el = document.getElementById(`${p}-recentResults`);
-  if (!results.length) { el.innerHTML = '<span class="empty-state">Chưa có kết quả</span>'; return; }
-  el.innerHTML = results.slice(0, 20).map(r => {
-    if (game === 'taixiu') {
-      if (r.isTriple) return `<div class="rdot rdot-triple" title="Bộ ba">3</div>`;
-      return `<div class="rdot rdot-${r.side}">${r.side === 'tai' ? 'T' : 'X'}</div>`;
-    } else if (game === 'baucua') {
-      return r.dice ? `<div class="rdot rdot-bau">${BAU_CUA_EMOJI[r.dice[0]] || '?'}</div>` : '';
-    } else {
-      return `<div class="rdot rdot-${r.side}">${r.side === 'chan' ? 'C' : 'L'}</div>`;
-    }
+function renderRecent(g, results) {
+  const p=PFX[g]; const el=document.getElementById(`${p}-recent`);
+  if(!results||!results.length){el.innerHTML='<span class="empty-state">Chưa có</span>';return;}
+  el.innerHTML=results.slice(0,20).map(r=>{
+    if(g==='taixiu') return r?.isTriple?`<div class="rdot rdot-triple">3</div>`:`<div class="rdot rdot-${r?.side}">${r?.side==='tai'?'T':'X'}</div>`;
+    if(g==='baucua') return r?.dice?`<div class="rdot rdot-bau">${BC_EMOJI[r.dice[0]]||'?'}</div>`:'';
+    return `<div class="rdot rdot-${r?.side}">${r?.side==='chan'?'C':'L'}</div>`;
   }).join('');
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
-async function loadHistory(game) {
-  if (!token) return;
+async function loadHistory(g) {
+  if(!token) return;
   try {
-    const res = await fetch(`${API}/api/history/${game}`, { headers: { Authorization: `Bearer ${token}` } });
-    const bets = await res.json();
-    const p = pfx[game];
-    const el = document.getElementById(`${p}-myHistory`);
-    if (!bets.length) { el.innerHTML = '<span class="empty-state">Chưa có lịch sử</span>'; return; }
-    el.innerHTML = bets.slice(0, 10).map(b => `
+    const r = await fetch(`${API}/api/history/${g}`, {headers:{Authorization:`Bearer ${token}`}});
+    const data = await r.json();
+    const p=PFX[g]; const el=document.getElementById(`${p}-hist`);
+    if(!data.length){el.innerHTML='<span class="empty-state">Chưa có lịch sử</span>';return;}
+    el.innerHTML=data.slice(0,10).map(b=>`
       <div class="hist-item">
         <span>${b.betChoice} ${fmt(b.betAmount)}đ</span>
-        <span class="${b.isWin ? 'hist-win' : 'hist-loss'}">${b.isWin ? '+'+fmt(b.payout-b.betAmount) : '-'+fmt(b.betAmount)}đ</span>
-      </div>
-    `).join('');
+        <span class="${b.isWin?'hist-win':'hist-loss'}">${b.isWin?'+'+fmt(b.payout-b.betAmount):'-'+fmt(b.betAmount)}đ</span>
+      </div>`).join('');
   } catch {}
 }
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
 function fmt(n) {
-  if (!n) return '0';
-  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-  if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+  if(!n) return '0';
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000) return (n/1000).toFixed(0)+'K';
   return n.toString();
 }
-
-function toast(msg, type = 'info') {
-  const tc = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast ${type}`;
-  t.innerHTML = msg;
-  tc.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
+function fmtLarge(n) {
+  if(!n) return '0';
+  if(n>=1000000000) return (n/1000000000).toFixed(1)+'T';
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000) return (n/1000).toFixed(0)+'K';
+  return n.toString();
 }
-
-// Keyboard enter for auth
-document.getElementById('authPassword').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitAuth();
-});
+function toast(msg, type='info') {
+  const tc=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg;
+  tc.appendChild(t); setTimeout(()=>t.remove(),3500);
+}
 </script>
 </body>
 </html>
