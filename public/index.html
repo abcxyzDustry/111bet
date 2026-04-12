@@ -40,7 +40,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .volume-slider{-webkit-appearance:none;appearance:none;width:60px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));outline:none;cursor:pointer;}
 .volume-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--gold);cursor:pointer;}
 
-/* Banner */
 .notif-bar{background:linear-gradient(90deg,rgba(192,57,43,.15),rgba(245,197,24,.1),rgba(192,57,43,.15));border-bottom:1px solid rgba(245,197,24,.2);padding:7px 0;overflow:hidden;white-space:nowrap;font-size:12px;color:var(--muted);}
 .notif-inner{display:inline-block;animation:marquee 35s linear infinite;padding-left:100%;}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-100%)}}
@@ -127,7 +126,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .btn-clear{background:var(--dark3);color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:13px 16px;cursor:pointer;font-family:inherit;font-size:13px;transition:all .2s;}
 .btn-clear:hover{color:var(--text);}
 
-/* No balance CTA */
 .no-balance-box{background:linear-gradient(135deg,rgba(39,174,96,.1),rgba(39,174,96,.05));border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:12px 16px;text-align:center;margin-bottom:12px;font-size:13px;}
 .no-balance-box b{color:#2ecc71;}
 .btn-nap-now{background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-top:8px;transition:all .2s;}
@@ -159,9 +157,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .toast.error{border-color:#c0392b;}
 @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
+/* ── AUTH MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
 .modal-overlay.hidden{display:none;}
-.modal{background:var(--dark2);border:1px solid var(--border);border-radius:16px;padding:30px;width:350px;max-width:92vw;}
+.modal{background:var(--dark2);border:1px solid var(--border);border-radius:16px;padding:30px;width:380px;max-width:92vw;}
 .modal h2{font-family:'Chakra Petch',monospace;color:var(--gold);margin-bottom:22px;font-size:18px;}
 .form-group{margin-bottom:14px;}
 .form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
@@ -174,9 +173,19 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .modal-switch a{color:var(--gold);cursor:pointer;}
 .error-msg{color:#e74c3c;font-size:12px;margin-top:6px;}
 
-/* ══════════════════════════════════════════════════════
-   HAMBURGER DRAWER
-══════════════════════════════════════════════════════ */
+/* UUID Login section trong modal */
+.uuid-divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.uuid-divider::before,.uuid-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.uuid-divider span{font-size:11px;color:var(--muted);white-space:nowrap;}
+.uuid-login-box{background:linear-gradient(135deg,rgba(41,128,185,.12),rgba(41,128,185,.05));border:1px solid rgba(41,128,185,.3);border-radius:10px;padding:14px;}
+.uuid-login-box .uuid-title{font-family:'Chakra Petch',monospace;font-size:11px;color:#3498db;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.uuid-login-box input{width:100%;background:var(--dark3);border:1px solid rgba(41,128,185,.3);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;font-family:'Chakra Petch',monospace;outline:none;transition:border .2s;margin-bottom:8px;}
+.uuid-login-box input:focus{border-color:#3498db;}
+.btn-uuid-login{width:100%;background:linear-gradient(135deg,#2980b9,#1a5276);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-uuid-login:hover{opacity:.85;}
+.btn-uuid-login:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── HAMBURGER DRAWER ── */
 .hamburger-btn{background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:18px;line-height:1;color:var(--text);transition:all .2s;flex-shrink:0;}
 .hamburger-btn:hover{background:rgba(255,255,255,.08);border-color:var(--muted);}
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:800;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(2px);}
@@ -193,6 +202,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .drawer-username b{color:var(--text);}
 .drawer-balance{font-size:22px;font-weight:700;color:var(--gold);font-family:'Chakra Petch',monospace;}
 .drawer-balance-label{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* Game account badge trong drawer */
+.game-account-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(41,128,185,.15);border:1px solid rgba(41,128,185,.3);border-radius:12px;padding:3px 10px;font-size:11px;color:#3498db;margin-top:6px;}
+
 .drawer-sep{height:1px;background:var(--border);}
 .drawer-section-title{font-family:'Chakra Petch',monospace;font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
 .drawer-form .form-group{margin-bottom:10px;}
@@ -214,11 +227,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .draw-err{color:#e74c3c;font-size:11px;margin-top:4px;}
 .draw-ok{color:#2ecc71;font-size:11px;margin-top:4px;}
 
-/* ══════════════════════════════════════════════════════
-   RESPONSIVE – LANDSCAPE & MOBILE
-══════════════════════════════════════════════════════ */
+/* Auto-login loading overlay */
+.auto-login-overlay{position:fixed;inset:0;background:rgba(13,13,13,.95);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.auto-login-overlay.hidden{display:none;}
+.auto-login-spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.auto-login-text{font-family:'Chakra Petch',monospace;font-size:16px;color:var(--gold);}
+.auto-login-sub{font-size:12px;color:var(--muted);}
 
-/* ── Base mobile (portrait ≤ 720px) ── */
+/* Responsive */
 @media(max-width:720px){
   .header{height:50px;padding:0 12px;}
   .logo{font-size:17px;}
@@ -237,11 +254,10 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .bet-btn{padding:11px 12px;font-size:13px;}
   .baucua-emoji{font-size:28px;}
   .btn-place{padding:11px;}
+  .modal{width:95vw;padding:20px;}
 }
 
-/* ── Landscape – any device (height < 500px) ── */
 @media(orientation:landscape) and (max-height:500px){
-  /* Header compact */
   .header{height:40px;padding:0 10px;}
   .logo{font-size:15px;letter-spacing:0;}
   .btn-audio{padding:3px 7px;font-size:13px;}
@@ -249,80 +265,46 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .btn-auth,.btn-logout,.btn-nap{padding:4px 10px;font-size:11px;}
   .balance-display{padding:3px 8px;font-size:11px;}
   .balance-display span{font-size:12px;}
-
-  /* Hide scrolling ticker to save vertical space */
   .notif-bar{display:none;}
-
-  /* Tabs slim */
   .tabs{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
   .tabs::-webkit-scrollbar{display:none;}
   .tab-btn{padding:7px 10px;font-size:11px;white-space:nowrap;flex-shrink:0;letter-spacing:0;}
-
-  /* Game panel tighter */
   .game-panel{padding:8px 10px;}
-
-  /* Force 2-column layout in landscape */
-  .game-container{
-    grid-template-columns:1fr 230px !important;
-    gap:10px;
-    max-width:100%;
-  }
-
-  /* Round status condensed */
+  .game-container{grid-template-columns:1fr 230px !important;gap:10px;max-width:100%;}
   .round-status{padding:6px 10px;margin-bottom:8px;border-radius:8px;}
   .phase-badge{font-size:9px;padding:3px 8px;}
   .countdown{font-size:19px;}
-
-  /* 3D game areas – shorter in landscape */
   [id$="-3d"]{height:130px !important;}
   .dice-area{min-height:100px;margin-bottom:8px;}
-
-  /* Result banner */
   .result-banner{font-size:17px;padding:3px 0;margin-bottom:6px;}
-
-  /* Bet board */
   .bet-board{padding:10px 12px;margin-bottom:8px;border-radius:10px;}
   .bet-board h3{font-size:10px;margin-bottom:8px;}
   .bet-btn{padding:8px 10px;font-size:12px;border-radius:8px;}
   .bet-icon{font-size:15px;}
   .odds{font-size:10px;}
   .bet-amount-display{font-size:10px;padding:1px 7px;}
-
-  /* Bầu Cua grid */
   .baucua-grid{grid-template-columns:repeat(3,1fr);gap:5px;}
   .baucua-btn{padding:6px 4px;}
   .baucua-emoji{font-size:22px;}
   .baucua-name{font-size:9px;}
   .baucua-amount{font-size:9px;}
-
-  /* Chips smaller + scrollable row */
   .chip-row{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding-bottom:4px;scrollbar-width:none;}
   .chip-row::-webkit-scrollbar{display:none;}
   .chip{width:36px;height:36px;font-size:8px;flex-shrink:0;}
-
-  /* Action buttons */
   .total-bet-info{font-size:10px;margin-bottom:4px;}
   .action-btns{gap:5px;}
   .btn-place{padding:8px;font-size:12px;border-radius:8px;}
   .btn-clear{padding:8px 10px;font-size:11px;border-radius:8px;}
-
-  /* Sidebar condensed */
   .recent-results{padding:8px 10px;margin-bottom:8px;}
   .recent-results h4,.my-history h4{font-size:9px;margin-bottom:6px;}
   .rdot{width:22px;height:22px;font-size:8px;}
   .result-dots{gap:3px;}
   .my-history{padding:8px 10px;}
   .hist-item{padding:4px 0;font-size:11px;}
-
-  /* No-balance box */
   .no-balance-box{padding:8px 10px;font-size:11px;margin-bottom:6px;}
   .btn-nap-now{padding:5px 14px;font-size:11px;}
-
-  /* Toast at top in landscape so it doesn't block game */
   .toast-container{bottom:auto;top:48px;right:10px;}
   .toast{min-width:180px;font-size:11px;padding:7px 12px;}
-
-  /* Modal compact */
   .modal{padding:18px;width:320px;}
   .modal h2{font-size:15px;margin-bottom:14px;}
   .form-group{margin-bottom:9px;}
@@ -330,20 +312,6 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .modal-actions{margin-top:12px;}
 }
 
-/* ── Landscape tablet (500px < height < 768px, landscape) ── */
-@media(orientation:landscape) and (min-height:500px) and (max-height:768px){
-  .notif-bar{padding:5px 0;font-size:11px;}
-  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-  .tabs::-webkit-scrollbar{display:none;}
-  .tab-btn{padding:9px 14px;font-size:12px;white-space:nowrap;flex-shrink:0;}
-  .game-panel{padding:14px 16px;}
-  .game-container{grid-template-columns:1fr 260px !important;max-width:100%;}
-  [id$="-3d"]{height:160px !important;}
-  .chip{width:44px;height:44px;}
-  .bet-btn{padding:10px 12px;}
-}
-
-/* ── Very small portrait (≤ 380px wide) ── */
 @media(max-width:380px){
   .tab-btn{padding:8px 8px;font-size:10px;}
   .game-panel{padding:8px;}
@@ -352,32 +320,15 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   .countdown{font-size:20px;}
 }
 
-/* Slots panel landscape overrides */
-@media(orientation:landscape) and (max-height:500px){
-  #panel-slots .game-container{grid-template-columns:1fr 200px !important;}
-  #sl-3d{height:110px !important;}
-}
-
-/* Roulette landscape – taller canvas for wheel */
-@media(orientation:landscape) and (max-height:500px){
-  #rl-3d{height:150px !important;}
-}
-
-/* Smooth scrolling for the page */
 html{scroll-behavior:smooth;}
-
-/* Prevent body scroll bounce on iOS */
 body{-webkit-overflow-scrolling:touch;}
 
-/* ── Safe-area insets (notch / Dynamic Island) ── */
 @supports(padding:max(0px)){
   .header{
     padding-left:max(20px, env(safe-area-inset-left));
     padding-right:max(20px, env(safe-area-inset-right));
   }
-  body{
-    padding-bottom:env(safe-area-inset-bottom);
-  }
+  body{padding-bottom:env(safe-area-inset-bottom);}
   .tabs{
     padding-left:max(8px, env(safe-area-inset-left));
     padding-right:max(8px, env(safe-area-inset-right));
@@ -397,7 +348,15 @@ body{-webkit-overflow-scrolling:touch;}
 </head>
 <body>
 
-<div class="modal-overlay" id="authModal">
+<!-- Auto-login loading overlay -->
+<div class="auto-login-overlay hidden" id="autoLoginOverlay">
+  <div class="auto-login-spinner"></div>
+  <div class="auto-login-text">🎮 ĐANG ĐĂNG NHẬP...</div>
+  <div class="auto-login-sub">Kết nối tài khoản Mindustry của bạn</div>
+</div>
+
+<!-- Auth Modal -->
+<div class="modal-overlay hidden" id="authModal">
   <div class="modal">
     <h2 id="modalTitle">🔐 Đăng nhập</h2>
     <div class="form-group"><label>Tên đăng nhập</label><input type="text" id="authUsername" placeholder="Username..."></div>
@@ -407,6 +366,19 @@ body{-webkit-overflow-scrolling:touch;}
       <button class="btn-primary" id="authSubmitBtn" onclick="submitAuth()">Đăng nhập</button>
     </div>
     <div class="modal-switch"><span id="msText">Chưa có tài khoản?</span> <a id="msLink" onclick="toggleAuthMode()">Đăng ký ngay</a></div>
+
+    <!-- UUID Login section -->
+    <div class="uuid-divider"><span>HOẶC ĐĂNG NHẬP BẰNG MINDUSTRY</span></div>
+    <div class="uuid-login-box">
+      <div class="uuid-title">🎮 Tài khoản Mindustry</div>
+      <input type="text" id="uuidInput" placeholder="Dán UUID từ lệnh /uuid trong game..." spellcheck="false" autocomplete="off">
+      <button class="btn-uuid-login" id="btnUuidLogin" onclick="submitUUIDLogin()">
+        🎮 Đăng nhập bằng UUID
+      </button>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">
+        💡 Trong game Mindustry, dùng lệnh <b style="color:var(--gold)">/web</b> để mở trang này và tự động đăng nhập
+      </div>
+    </div>
   </div>
 </div>
 
@@ -440,6 +412,7 @@ body{-webkit-overflow-scrolling:touch;}
       <div class="drawer-username">Xin chào, <b id="drawerUsername">--</b></div>
       <div class="drawer-balance" id="drawerBalance">0</div>
       <div class="drawer-balance-label">đ – Số dư hiện tại</div>
+      <div id="gameAccountBadge" style="display:none" class="game-account-badge">🎮 Tài khoản Mindustry</div>
     </div>
     <a class="btn-nap-drawer" href="/payment">💳 Nạp tiền</a>
     <div class="drawer-sep"></div>
@@ -720,34 +693,104 @@ body{-webkit-overflow-scrolling:touch;}
 const API = '';
 let socket, token = localStorage.getItem('token');
 let balance = 0, username = '', authMode = 'login', selectedChip = 10000;
+let isGameAccount = false;
 const bets = { taixiu:{}, baucua:{}, xocdia:{}, roulette:{} };
 const BC_EMOJI = {bau:'🍐',cua:'🦀',tom:'🦐',ca:'🐟',ga:'🐓',nai:'🦌'};
 const DICE_FACES = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
 const PFX = {taixiu:'tx',baucua:'bc',xocdia:'xd',roulette:'rl'};
 const SLOT_EMOJI = {'7':'7️⃣',diamond:'💎',star:'⭐',bell:'🔔',grapes:'🍇',orange:'🍊',lemon:'🍋',cherry:'🍒'};
 
+// ── Auto-login by UUID (từ URL param ?uuid=...) ──────────────────────────────
+async function autoLoginByUUID(uuid) {
+  const overlay = document.getElementById('autoLoginOverlay');
+  overlay.classList.remove('hidden');
+  try {
+    const r = await fetch(`${API}/api/game/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uuid })
+    });
+    const d = await r.json();
+    overlay.classList.add('hidden');
+    if (!r.ok) {
+      toast('❌ ' + (d.error || 'Không thể tự đăng nhập'), 'error');
+      return false;
+    }
+    token = d.token;
+    localStorage.setItem('token', token);
+    isGameAccount = true;
+    setLoggedIn(d.username, d.balance, true);
+    // Xóa uuid khỏi URL không reload trang
+    const url = new URL(window.location.href);
+    url.searchParams.delete('uuid');
+    window.history.replaceState({}, '', url.toString());
+    toast(`🎮 Chào mừng ${d.username}! Đã đăng nhập từ Mindustry`, 'info');
+    return true;
+  } catch {
+    overlay.classList.add('hidden');
+    toast('❌ Lỗi kết nối khi tự đăng nhập', 'error');
+    return false;
+  }
+}
+
+// UUID login thủ công từ modal
+async function submitUUIDLogin() {
+  const uuid = document.getElementById('uuidInput').value.trim();
+  const btn = document.getElementById('btnUuidLogin');
+  if (!uuid) { toast('⚠️ Vui lòng nhập UUID', 'error'); return; }
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang đăng nhập...';
+  const ok = await autoLoginByUUID(uuid);
+  btn.disabled = false;
+  btn.innerHTML = '🎮 Đăng nhập bằng UUID';
+  if (ok) {
+    document.getElementById('authModal').classList.add('hidden');
+    if (!socket) connectSocket();
+    else socket.emit('auth', token);
+    loadRecentResults();
+  }
+}
+
 window.onload = async () => {
   loadBanner();
   loadRecentResults();
-  // Init 3D scenes after small delay to allow DOM to settle
   setTimeout(() => {
-    if (window.Dice3D)   Dice3D.init('tx-3d');
-    if (window.BauCua3D) BauCua3D.init('bc-3d');
+    if (window.Dice3D)    Dice3D.init('tx-3d');
+    if (window.BauCua3D)  BauCua3D.init('bc-3d');
     if (window.Roulette3D) Roulette3D.init('rl-3d');
-    if (window.Slots3D)  Slots3D.init('sl-3d');
+    if (window.Slots3D)   Slots3D.init('sl-3d');
   }, 300);
+
+  // Ưu tiên 1: UUID từ URL (từ lệnh /web trong Mindustry)
+  const urlParams = new URLSearchParams(window.location.search);
+  const uuidParam = urlParams.get('uuid');
+  if (uuidParam) {
+    const ok = await autoLoginByUUID(uuidParam);
+    if (ok) { connectSocket(); return; }
+    // Nếu thất bại → hiện modal
+    document.getElementById('uuidInput').value = uuidParam;
+    document.getElementById('authModal').classList.remove('hidden');
+    connectSocket();
+    return;
+  }
+
+  // Ưu tiên 2: Token đã lưu
   if (token) {
     try {
-      const r = await fetch(`${API}/api/me`, { headers:{Authorization:`Bearer ${token}`} });
+      const r = await fetch(`${API}/api/me`, { headers: { Authorization: `Bearer ${token}` } });
       if (r.ok) {
         const d = await r.json();
-        setLoggedIn(d.username, d.balance);
+        isGameAccount = d.isGameAccount || false;
+        setLoggedIn(d.username, d.balance, d.isGameAccount);
         connectSocket();
         return;
       }
     } catch {}
     localStorage.removeItem('token');
+    token = null;
   }
+
+  // Fallback: hiện modal đăng nhập
   document.getElementById('authModal').classList.remove('hidden');
   connectSocket();
 };
@@ -763,7 +806,7 @@ async function loadBanner() {
 
 function buildBannerText(d) {
   const depStr = fmtLarge(d.totalDeposit);
-  const wdStr = fmtLarge(d.totalWithdraw);
+  const wdStr  = fmtLarge(d.totalWithdraw);
   let parts = [
     `💰 Tổng tiền đã nạp: ${depStr}đ`,
     `💸 Tổng tiền đã rút: ${wdStr}đ`,
@@ -784,17 +827,17 @@ function connectSocket() {
     else socket.emit('join_guest');
   });
   ['taixiu','baucua','xocdia','roulette'].forEach(g => {
-    socket.on(`${g}:state`, d => initState(g, d));
-    socket.on(`${g}:tick`, d => updateCD(g, d));
-    socket.on(`${g}:rolling`, () => showRolling(g));
-    socket.on(`${g}:result`, d => showResult(g, d));
+    socket.on(`${g}:state`,     d => initState(g, d));
+    socket.on(`${g}:tick`,      d => updateCD(g, d));
+    socket.on(`${g}:rolling`,   () => showRolling(g));
+    socket.on(`${g}:result`,    d => showResult(g, d));
     socket.on(`${g}:new_round`, d => newRound(g, d));
-    socket.on(`${g}:bet_result`, d => handleBetResult(d));
+    socket.on(`${g}:bet_result`,d => handleBetResult(d));
   });
-  socket.on('balance_update', d => { balance = d.balance; updateBalDisplay(); updateNoBalBoxes(); });
-  socket.on('bet_accepted', d => { balance = d.balance; updateBalDisplay(); updateNoBalBoxes(); toast('✅ Đã đặt cược!', 'info'); });
-  socket.on('bet_error', d => toast('❌ ' + d.error, 'error'));
-  socket.on('banner_update', () => loadBanner());
+  socket.on('balance_update',   d => { balance = d.balance; updateBalDisplay(); updateNoBalBoxes(); });
+  socket.on('bet_accepted',     d => { balance = d.balance; updateBalDisplay(); updateNoBalBoxes(); toast('✅ Đã đặt cược!', 'info'); });
+  socket.on('bet_error',        d => toast('❌ ' + d.error, 'error'));
+  socket.on('banner_update',    () => loadBanner());
   socket.on('deposit_approved', d => {
     balance = d.balance; updateBalDisplay(); updateNoBalBoxes();
     toast(`🎉 Nạp ${fmt(d.amount)}đ thành công! Số dư: ${fmt(d.balance)}đ`, 'win');
@@ -816,11 +859,11 @@ function showAuth() { document.getElementById('authModal').classList.remove('hid
 function toggleAuthMode() {
   authMode = authMode==='login'?'register':'login';
   const isL = authMode==='login';
-  document.getElementById('modalTitle').textContent = isL?'🔐 Đăng nhập':'📝 Đăng ký';
+  document.getElementById('modalTitle').textContent   = isL?'🔐 Đăng nhập':'📝 Đăng ký';
   document.getElementById('authSubmitBtn').textContent = isL?'Đăng nhập':'Đăng ký';
-  document.getElementById('msText').textContent = isL?'Chưa có tài khoản?':'Đã có tài khoản?';
-  document.getElementById('msLink').textContent = isL?' Đăng ký ngay':' Đăng nhập';
-  document.getElementById('authError').textContent='';
+  document.getElementById('msText').textContent        = isL?'Chưa có tài khoản?':'Đã có tài khoản?';
+  document.getElementById('msLink').textContent        = isL?' Đăng ký ngay':' Đăng nhập';
+  document.getElementById('authError').textContent    = '';
 }
 async function submitAuth() {
   const u = document.getElementById('authUsername').value.trim();
@@ -832,7 +875,8 @@ async function submitAuth() {
     const d = await r.json();
     if (!r.ok) { document.getElementById('authError').textContent = d.error; return; }
     token = d.token; localStorage.setItem('token', token);
-    setLoggedIn(d.username, d.balance);
+    isGameAccount = false;
+    setLoggedIn(d.username, d.balance, false);
     document.getElementById('authModal').classList.add('hidden');
     socket.emit('auth', token);
     loadRecentResults();
@@ -840,12 +884,14 @@ async function submitAuth() {
   } catch { document.getElementById('authError').textContent = 'Lỗi kết nối'; }
 }
 
-function setLoggedIn(u, b) {
-  username = u; balance = b;
+function setLoggedIn(u, b, isGame=false) {
+  username = u; balance = b; isGameAccount = isGame;
   document.getElementById('headerRight').innerHTML = '';
   document.getElementById('hamburgerBtn').style.display = 'flex';
-  document.getElementById('drawerUsername').textContent = u;
-  document.getElementById('drawerBalance').textContent = fmt(balance);
+  document.getElementById('drawerUsername').textContent  = u;
+  document.getElementById('drawerBalance').textContent   = fmt(balance);
+  const badge = document.getElementById('gameAccountBadge');
+  if (badge) badge.style.display = isGame ? 'inline-flex' : 'none';
   updateNoBalBoxes();
   loadMyWithdrawRequests();
 }
@@ -861,7 +907,7 @@ function updateNoBalBoxes() {
   });
 }
 function logout() {
-  localStorage.removeItem('token'); token=null; username=''; balance=0;
+  localStorage.removeItem('token'); token=null; username=''; balance=0; isGameAccount=false;
   document.getElementById('headerRight').innerHTML=`<button class="btn-auth" onclick="showAuth()">Đăng nhập</button>`;
   document.getElementById('hamburgerBtn').style.display='none';
   closeDrawer();
@@ -873,6 +919,8 @@ function openDrawer() {
   document.getElementById('drawerOverlay').classList.add('open');
   document.getElementById('userDrawer').classList.add('open');
   document.getElementById('drawerBalance').textContent = fmt(balance);
+  const badge = document.getElementById('gameAccountBadge');
+  if (badge) badge.style.display = isGameAccount ? 'inline-flex' : 'none';
   loadMyWithdrawRequests();
 }
 function closeDrawer() {
@@ -880,16 +928,16 @@ function closeDrawer() {
   document.getElementById('userDrawer').classList.remove('open');
 }
 
-// ── Withdraw Request ──────────────────────────────────────────────────────────
+// ── Withdraw ──────────────────────────────────────────────────────────────────
 async function submitWithdrawRequest() {
-  const amt = parseInt(document.getElementById('wrAmount').value);
+  const amt  = parseInt(document.getElementById('wrAmount').value);
   const bank = document.getElementById('wrBank').value;
-  const acc = document.getElementById('wrAccount').value.trim();
+  const acc  = document.getElementById('wrAccount').value.trim();
   const msgEl = document.getElementById('wrMsg');
   msgEl.innerHTML = '';
   if (!amt || amt < 50000) { msgEl.innerHTML='<div class="draw-err">Số tiền tối thiểu 50,000đ</div>'; return; }
   if (!bank) { msgEl.innerHTML='<div class="draw-err">Vui lòng chọn ngân hàng</div>'; return; }
-  if (!acc) { msgEl.innerHTML='<div class="draw-err">Vui lòng nhập số tài khoản</div>'; return; }
+  if (!acc)  { msgEl.innerHTML='<div class="draw-err">Vui lòng nhập số tài khoản</div>'; return; }
   try {
     const r = await fetch('/api/withdraw-request', {
       method:'POST',
@@ -914,7 +962,7 @@ async function loadMyWithdrawRequests() {
     const el = document.getElementById('wrList');
     if (!list.length) { el.innerHTML='<span style="color:var(--muted);font-size:12px">Chưa có yêu cầu</span>'; return; }
     const statusMap = { pending:'⏳ Chờ', approved:'✅ Duyệt', rejected:'❌ Từ chối' };
-    const classMap = { pending:'wr-status-pending', approved:'wr-status-approved', rejected:'wr-status-rejected' };
+    const classMap  = { pending:'wr-status-pending', approved:'wr-status-approved', rejected:'wr-status-rejected' };
     el.innerHTML = list.slice(0,5).map(w=>`
       <div class="wr-item">
         <div><div style="font-weight:600">${fmt(w.amount)}đ</div><div style="color:var(--muted);font-size:11px">${w.bankName} – ${w.bankAccount}</div></div>
@@ -931,7 +979,6 @@ function switchTab(g, btn) {
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`panel-${g}`).classList.add('active');
   btn.classList.add('active');
-  // Re-init 3D scenes that are first-time visible (container needs to have layout)
   if (!_3dInited[g]) {
     _3dInited[g]=true;
     setTimeout(()=>{
@@ -954,7 +1001,6 @@ function selectChip(amt, el) {
   window.SFX && SFX.chip();
 }
 
-// Exclusive bet groups: only ONE button per game can hold chips at a time
 const EXCLUSIVE_BETS = {
   taixiu:  [['tai','xiu']],
   baucua:  [['bau','cua','tom','ca','ga','nai']],
@@ -970,7 +1016,6 @@ function toggleBet(game, choice, btn) {
   if (phaseText === 'ĐANG LẮC' || phaseText === 'KẾT QUẢ') {
     toast('⏰ Phiên cược đã đóng!', 'error'); return;
   }
-  // Enforce exclusive selection: clear opposing choices in same group
   const groups = EXCLUSIVE_BETS[game] || [];
   for (const group of groups) {
     if (group.includes(choice)) {
@@ -1011,7 +1056,7 @@ async function placeBet(game) {
 function initState(g, d) {
   const p=PFX[g];
   setPhase(g, d.phase);
-  document.getElementById(`${p}-cd`).textContent = d.countdown;
+  document.getElementById(`${p}-cd`).textContent  = d.countdown;
   document.getElementById(`${p}-sid`).textContent = 'ID:'+(d.sessionId||'').slice(-6);
   if(d.phase==='RESULT'&&d.result) showResultVisual(g,d.result);
   else if(d.phase==='ROLLING') showRolling(g);
@@ -1039,25 +1084,24 @@ function setPhase(g, phase) {
 
 function showRolling(g) {
   const p=PFX[g]; setPhase(g,'ROLLING');
-  const rollEl = document.getElementById(`${p}-roll`);
-  if (rollEl) rollEl.style.display='flex';
-  const bannerEl = document.getElementById(`${p}-banner`);
-  if (bannerEl) bannerEl.style.display='none';
-  if (window.SFX) {
+  const rollEl=document.getElementById(`${p}-roll`);
+  if(rollEl) rollEl.style.display='flex';
+  const bannerEl=document.getElementById(`${p}-banner`);
+  if(bannerEl) bannerEl.style.display='none';
+  if(window.SFX) {
     if(g==='taixiu') SFX.diceRoll();
     else if(g==='baucua') SFX.bauCuaRoll();
     else if(g==='roulette') SFX.rouletteSpin();
     else if(g==='xocdia') SFX.xocdiaRoll ? SFX.xocdiaRoll() : SFX.diceRoll();
     SFX.betClosed && SFX.betClosed();
   }
-  if (g==='taixiu' && window.Dice3D) {
-    // 3D dice roll animation (values will come with result)
-    Dice3D._state = 'rolling';
-    Dice3D._rotSpeeds = Dice3D._dice ? Dice3D._dice.map(()=>({x:0.15,y:0.2,z:0.05})) : [];
-  } else if (g==='baucua' && window.BauCua3D) {
-    BauCua3D._state = 'rolling';
-    BauCua3D._rotSpeeds = BauCua3D._dice ? BauCua3D._dice.map(()=>({x:0.15,y:0.2,z:0.05})) : [];
-  } else if (g==='xocdia') {
+  if(g==='taixiu' && window.Dice3D) {
+    Dice3D._state='rolling';
+    Dice3D._rotSpeeds=Dice3D._dice?Dice3D._dice.map(()=>({x:0.15,y:0.2,z:0.05})):[];
+  } else if(g==='baucua' && window.BauCua3D) {
+    BauCua3D._state='rolling';
+    BauCua3D._rotSpeeds=BauCua3D._dice?BauCua3D._dice.map(()=>({x:0.15,y:0.2,z:0.05})):[];
+  } else if(g==='xocdia') {
     document.getElementById('xd-coins').innerHTML=`<div class="coin do">?</div><div class="coin do">?</div><div class="coin trang">?</div><div class="coin trang">?</div>`;
   }
 }
@@ -1075,20 +1119,14 @@ function showResultVisual(g, r) {
   const rollEl=document.getElementById(`${p}-roll`); if(rollEl) rollEl.style.display='none';
 
   if(g==='taixiu'){
-    // Animate 3D dice to final values
-    if(window.Dice3D && Dice3D._dice) {
-      Dice3D.roll(r.dice, ()=>{});
-    }
+    if(window.Dice3D && Dice3D._dice) { Dice3D.roll(r.dice, ()=>{}); }
     if(banner){
       banner.style.display='block';
       banner.className=`result-banner result-${r.isTriple?'triple':r.side}`;
       banner.textContent=r.isTriple?`⚠️ BỘ BA (${r.dice.join('-')}=${r.sum}) – NHÀ CÁI ĂN TẤT`:`${r.side==='tai'?'🔴 TÀI':'🔵 XỈU'} (${r.dice.join('-')}=${r.sum})`;
     }
   } else if(g==='baucua'){
-    // Animate 3D baucua dice to final symbols
-    if(window.BauCua3D && BauCua3D._dice) {
-      BauCua3D.roll(r.dice, ()=>{});
-    }
+    if(window.BauCua3D && BauCua3D._dice) { BauCua3D.roll(r.dice, ()=>{}); }
     if(banner){
       banner.style.display='block';
       banner.style.color='var(--gold)';
@@ -1102,9 +1140,7 @@ function showResultVisual(g, r) {
       banner.textContent=`${r.side==='chan'?'🟢 CHẴN':'🟣 LẺ'} (${r.redCount} đỏ – ${r.whiteCount} trắng)`;
     }
   } else if(g==='roulette'){
-    if(window.Roulette3D && Roulette3D._wheel) {
-      Roulette3D.spin(r.number, ()=>{});
-    }
+    if(window.Roulette3D && Roulette3D._wheel) { Roulette3D.spin(r.number, ()=>{}); }
     if(banner){
       banner.style.display='block';
       const colText = r.color==='red'?'🔴 ĐỎ':r.color==='black'?'⬛ ĐEN':'🟢 XANH (0)';
@@ -1117,12 +1153,11 @@ function showResultVisual(g, r) {
 
 function resetDice(g) {
   const p=PFX[g];
-  const rollEl=document.getElementById(`${p}-roll`); if(rollEl) rollEl.style.display='none';
+  const rollEl=document.getElementById(`${p}-roll`);   if(rollEl)   rollEl.style.display='none';
   const bannerEl=document.getElementById(`${p}-banner`); if(bannerEl) bannerEl.style.display='none';
-  if(g==='taixiu'   && window.Dice3D)    Dice3D.reset();
-  else if(g==='baucua'  && window.BauCua3D)  BauCua3D.reset();
+  if(g==='taixiu' && window.Dice3D) Dice3D.reset();
+  else if(g==='baucua' && window.BauCua3D) BauCua3D.reset();
   else if(g==='xocdia') document.getElementById('xd-coins').innerHTML=`<div class="coin do">Đ</div><div class="coin do">Đ</div><div class="coin trang">T</div><div class="coin trang">T</div>`;
-  // Roulette 3D keeps spinning idly – no reset needed
 }
 
 function newRound(g, d) {
@@ -1137,9 +1172,9 @@ function handleBetResult(d) {
   if(d.isWin) {
     const profit = d.payout - d.amount;
     toast(`🎉 THẮNG! +${fmt(profit)}đ`, 'win');
-    if (window.SFX) {
-      if (d.payout >= d.amount * 10) SFX.jackpot();
-      else if (d.payout >= d.amount * 4) SFX.bigWin ? SFX.bigWin() : SFX.win();
+    if(window.SFX) {
+      if(d.payout >= d.amount*10) SFX.jackpot();
+      else if(d.payout >= d.amount*4) SFX.bigWin ? SFX.bigWin() : SFX.win();
       else SFX.win();
     }
   } else {
@@ -1175,7 +1210,7 @@ function renderRecent(g, results) {
   }).join('');
 }
 
-// ── Slots Spin ─────────────────────────────────────────────────────────────────
+// ── Slots ─────────────────────────────────────────────────────────────────────
 let _slotSpinning = false;
 async function spinSlots() {
   if (!token) { toast('⚠️ Vui lòng đăng nhập', 'error'); return; }
@@ -1186,7 +1221,6 @@ async function spinSlots() {
   const btn = document.getElementById('sl-spin-btn');
   if(btn) btn.disabled = true;
 
-  // Show rolling overlay briefly
   const rollEl = document.getElementById('sl-roll');
   if(rollEl) rollEl.style.display='flex';
   const bannerEl = document.getElementById('sl-banner');
@@ -1202,14 +1236,11 @@ async function spinSlots() {
     if (!res.ok) { toast('❌ ' + d.error, 'error'); _slotSpinning=false; if(btn)btn.disabled=false; if(rollEl)rollEl.style.display='none'; return; }
 
     balance = d.balance; updateBalDisplay(); updateNoBalBoxes();
-
-    // Record in local history
     _slotHistory.unshift({ symbols: d.symbols, payout: d.payout, bet: selectedChip, isWin: d.isWin });
     if (_slotHistory.length > 50) _slotHistory.pop();
 
     window.SFX && SFX.slotSpin();
 
-    // Animate 3D slots
     if (window.Slots3D && Slots3D._reels.length) {
       Slots3D.spin(d.symbols, () => {
         if(rollEl) rollEl.style.display='none';
@@ -1226,7 +1257,6 @@ async function spinSlots() {
         if(btn)btn.disabled=false;
       }, 1500);
     }
-    // Update bet display
     const bdEl = document.getElementById('sl-bet-display');
     if(bdEl) bdEl.textContent=fmt(selectedChip)+'đ';
     loadSlotsHistory();
@@ -1254,7 +1284,6 @@ function showSlotsResult(d) {
 
 let _slotHistory = [];
 function loadSlotsHistory() {
-  // stored client-side from recent spins
   const el = document.getElementById('sl-hist');
   if(!el || !_slotHistory.length){
     if(el) el.innerHTML='<span class="empty-state">Chưa có lịch sử</span>';
@@ -1285,7 +1314,7 @@ async function loadHistory(g) {
   } catch {}
 }
 
-// ── Audio Controls ────────────────────────────────────────────────────────────
+// ── Audio ─────────────────────────────────────────────────────────────────────
 let _audioStarted = false;
 function ensureAudio() {
   if (_audioStarted || !window.AudioCtrl) return;
@@ -1300,7 +1329,6 @@ function toggleBGM(btn) {
   ensureAudio();
   const muted = AudioCtrl.toggleBGMusic();
   btn.classList.toggle('muted', muted);
-  btn.textContent = muted ? '🎵' : '🎵';
   toast(muted ? '🔇 Đã tắt nhạc nền' : '🎵 Đã bật nhạc nền', 'info');
 }
 function toggleSFX(btn) {
@@ -1309,20 +1337,21 @@ function toggleSFX(btn) {
   const muted = AudioCtrl.toggleMute();
   btn.classList.toggle('muted', muted);
   btn.textContent = muted ? '🔇' : '🔊';
-  toast(muted ? '🔇 Đã tắt hiệu ứng âm thanh' : '🔊 Đã bật hiệu ứng âm thanh', 'info');
+  toast(muted ? '🔇 Đã tắt hiệu ứng' : '🔊 Đã bật hiệu ứng', 'info');
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(n) {
   if(!n) return '0';
   if(n>=1000000) return (n/1000000).toFixed(1)+'M';
-  if(n>=1000) return (n/1000).toFixed(0)+'K';
+  if(n>=1000)    return (n/1000).toFixed(0)+'K';
   return n.toString();
 }
 function fmtLarge(n) {
   if(!n) return '0';
   if(n>=1000000000) return (n/1000000000).toFixed(1)+'T';
-  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
-  if(n>=1000) return (n/1000).toFixed(0)+'K';
+  if(n>=1000000)    return (n/1000000).toFixed(1)+'M';
+  if(n>=1000)       return (n/1000).toFixed(0)+'K';
   return n.toString();
 }
 function toast(msg, type='info') {
