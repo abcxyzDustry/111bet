@@ -21,13 +21,13 @@ app.get('/',        (req, res) => res.sendFile(path.join(__dirname, 'public', 'i
 app.get('/admin',   (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/payment', (req, res) => res.sendFile(path.join(__dirname, 'public', 'payment.html')));
 
-const MONGO_URI       = process.env.MONGO_URI       || 'mongodb://localhost:27017/gambling_research';
-const JWT_SECRET      = process.env.JWT_SECRET      || 'gambling_secret_2024';
-const ADMIN_USERNAME  = process.env.ADMIN_USERNAME  || 'admin';
-const ADMIN_PASSWORD  = process.env.ADMIN_PASSWORD  || 'Admin@2024!';
+const MONGO_URI      = process.env.MONGO_URI      || 'mongodb://localhost:27017/gambling_research';
+const JWT_SECRET     = process.env.JWT_SECRET      || 'gambling_secret_2024';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME  || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD  || 'Admin@2024!';
 
 mongoose.connect(MONGO_URI)
-  .then(() => { console.log('✅ MongoDB connected'); ensureAdmin(); })
+  .then(() => { console.log('â MongoDB connected'); ensureAdmin(); })
   .catch(err => console.error('MongoDB error:', err));
 
 async function ensureAdmin() {
@@ -36,7 +36,7 @@ async function ensureAdmin() {
     if (!exists) {
       const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
       await User.create({ username: ADMIN_USERNAME, password: hash, isAdmin: true });
-      console.log(`✅ Admin: ${ADMIN_USERNAME}`);
+      console.log(`â Admin: ${ADMIN_USERNAME}`);
     }
   } catch {}
 }
@@ -54,44 +54,33 @@ const userSchema = new mongoose.Schema({
   createdAt:     { type: Date, default: Date.now },
   isAdmin:       { type: Boolean, default: false },
   status:        { type: String, default: 'active' },
-  isGameAccount: { type: Boolean, default: false }
+  isGameAccount: { type: Boolean, default: false },
+  lastSeen:      { type: Date, default: null },
+  isOnline:      { type: Boolean, default: false },
 });
 
 const transactionSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  username:  String,
-  uuid:      String,
-  type:      String, // deposit | withdraw
-  amount:    Number,
-  note:      String,
-  adminId:   String,
+  username:  String, uuid: String,
+  type:      String,
+  amount:    Number, note: String, adminId: String,
   createdAt: { type: Date, default: Date.now }
 });
 
 const depositRequestSchema = new mongoose.Schema({
-  userId:       { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  username:     String,
-  amount:       Number,
-  transferCode: String,
-  status:       { type: String, default: 'pending' },
-  note:         String,
-  adminNote:    String,
-  reviewedBy:   String,
-  reviewedAt:   Date,
-  createdAt:    { type: Date, default: Date.now }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  username: String, amount: Number, transferCode: String,
+  status: { type: String, default: 'pending' }, note: String,
+  adminNote: String, reviewedBy: String, reviewedAt: Date,
+  createdAt: { type: Date, default: Date.now }
 });
 
 const withdrawRequestSchema = new mongoose.Schema({
-  userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  username:    String,
-  amount:      Number,
-  bankName:    String,
-  bankAccount: String,
-  status:      { type: String, default: 'pending' },
-  adminNote:   String,
-  reviewedBy:  String,
-  reviewedAt:  Date,
-  createdAt:   { type: Date, default: Date.now }
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  username: String, amount: Number, bankName: String, bankAccount: String,
+  status: { type: String, default: 'pending' }, adminNote: String,
+  reviewedBy: String, reviewedAt: Date,
+  createdAt: { type: Date, default: Date.now }
 });
 
 const sessionSchema = new mongoose.Schema({
@@ -107,22 +96,15 @@ const sessionSchema = new mongoose.Schema({
 
 const betSchema = new mongoose.Schema({
   userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  username:  String,
-  uuid:      String,
-  gameType:  String,
-  sessionId: String,
+  username:  String, uuid: String, gameType: String, sessionId: String,
   betChoice: mongoose.Schema.Types.Mixed,
-  betAmount: Number,
-  result:    mongoose.Schema.Types.Mixed,
-  payout:    Number,
-  isWin:     Boolean,
+  betAmount: Number, result: mongoose.Schema.Types.Mixed,
+  payout:    Number, isWin: Boolean,
   createdAt: { type: Date, default: Date.now }
 });
 
 const bannerSchema = new mongoose.Schema({
-  key:       { type: String, unique: true },
-  label:     String,
-  value:     String,
+  key: { type: String, unique: true }, label: String, value: String,
   updatedAt: { type: Date, default: Date.now }
 });
 
@@ -135,6 +117,21 @@ const Bet             = mongoose.model('Bet',             betSchema);
 const Banner          = mongoose.model('Banner',          bannerSchema);
 
 let houseEdgeRate = 0.70;
+
+// ==================== PLUGIN NOTIFICATION QUEUE ====================
+// HÃ ng Äá»£i thÃ´ng bÃ¡o cho plugin poll â key = uuid (tÃªn Minecraft)
+// { uuid: [ { type, ...data } ] }
+const pluginNotifQueue = {};
+
+function pushNotif(uuid, notif) {
+  if (!pluginNotifQueue[uuid]) pluginNotifQueue[uuid] = [];
+  pluginNotifQueue[uuid].push(notif);
+  // Giá»i háº¡n tá»i Äa 50 notif / player Äá» trÃ¡nh memory leak
+  if (pluginNotifQueue[uuid].length > 50) pluginNotifQueue[uuid].shift();
+}
+
+// Map userId (ObjectId string) -> uuid (tÃªn Minecraft) Äá» push notif khi cÃ³ káº¿t quáº£ cÆ°á»£c
+const userIdToUuid = {};
 
 // ==================== MIDDLEWARE ====================
 const auth = (req, res, next) => {
@@ -162,19 +159,6 @@ const games = {
     sessionId: uuidv4(), startTime: Date.now()
   }
 };
-
-// Broadcast trang thai game realtime (cho plugin poll)
-function broadcastGameState(gameType) {
-  const s = games[gameType];
-  if (!s) return;
-  io.emit(`${gameType}:state`, {
-    phase:     s.phase,
-    countdown: s.countdown,
-    result:    s.result,
-    sessionId: s.sessionId,
-    serverTime: Date.now()
-  });
-}
 
 function rollTx() {
   const dice = Array.from({ length: 3 }, () => Math.floor(Math.random() * 6) + 1);
@@ -240,12 +224,31 @@ function startLoop() {
               sb.push(betDoc);
               tb += amt; tp += pay;
 
-              // Push realtime balance update
+              // Push realtime qua Socket.IO (cho web)
               io.to(uid).emit('balance_update',    { balance: user.balance });
               io.to(uid).emit('taixiu:bet_result', {
                 choice, amount: amt, payout: pay, isWin,
                 result: s.result, balance: user.balance
               });
+
+              // ââ Push vÃ o notification queue cho plugin poll ââ
+              const playerUuid = user.uuid || userIdToUuid[uid];
+              if (playerUuid) {
+                pushNotif(playerUuid, {
+                  type:      'bet_result',
+                  choice,
+                  betAmount: amt,
+                  payout:    pay,
+                  isWin,
+                  balance:   user.balance,
+                  result:    s.result,
+                });
+                // CÅ©ng push balance update Äá» plugin luÃ´n cÃ³ sá» dÆ° má»i
+                pushNotif(playerUuid, {
+                  type:    'balance_update',
+                  balance: user.balance,
+                });
+              }
             }
           }
         }
@@ -256,8 +259,8 @@ function startLoop() {
           totalBetAmount: tb, totalPayout: tp, houseProfit: tb - tp
         });
 
-        io.emit('taixiu:result',    { result: s.result, sessionId: s.sessionId, serverTime: Date.now() });
-        io.emit('leaderboard:update', {}); // notify clients to refresh leaderboard
+        io.emit('taixiu:result',      { result: s.result, sessionId: s.sessionId, serverTime: Date.now() });
+        io.emit('leaderboard:update', {});
         s.bets = {};
       }
     } else {
@@ -302,10 +305,10 @@ io.on('connection', socket => {
       const s = games[gameType];
       if (!s || s.phase !== 'BETTING') return socket.emit('bet_error', { error: 'Phien cuoc da dong' });
       const user = await User.findById(d.id);
-      if (!user)                   return socket.emit('bet_error', { error: 'User not found' });
+      if (!user)                    return socket.emit('bet_error', { error: 'User not found' });
       if (user.status === 'banned') return socket.emit('bet_error', { error: 'Tai khoan bi khoa' });
       const total = Object.values(bets).reduce((s, v) => s + v, 0);
-      if (total <= 0)       return socket.emit('bet_error', { error: 'So tien khong hop le' });
+      if (total <= 0)           return socket.emit('bet_error', { error: 'So tien khong hop le' });
       if (user.balance < total) return socket.emit('bet_error', { error: 'So du khong du!' });
       user.balance -= total;
       await user.save();
@@ -319,9 +322,9 @@ io.on('connection', socket => {
   });
 });
 
-// ==================== GAME API ENDPOINTS (cho Plugin) ====================
+// ==================== GAME API (cho Plugin) ====================
 
-// Dang ky tai khoan tu game
+// ÄÄng kÃ½ tÃ i khoáº£n tá»« game
 app.post('/api/game/register', async (req, res) => {
   try {
     const { uuid, username } = req.body;
@@ -337,36 +340,33 @@ app.post('/api/game/register', async (req, res) => {
         password: await bcrypt.hash(uuid, 10)
       });
     }
+    // LÆ°u mapping uid -> uuid
+    userIdToUuid[user._id.toString()] = uuid;
     res.json({ success: true, balance: user.balance, username: user.username });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Login bang UUID (tu game mo web)
+// Login báº±ng UUID
 app.post('/api/game/login', async (req, res) => {
   try {
     const { uuid } = req.body;
     if (!uuid) return res.status(400).json({ error: 'Missing uuid' });
     const user = await User.findOne({ uuid });
-    if (!user)                   return res.status(404).json({ error: 'Chua co tai khoan. Join game truoc!' });
+    if (!user)                    return res.status(404).json({ error: 'Chua co tai khoan. Join game truoc!' });
     if (user.status === 'banned') return res.status(403).json({ error: 'Tai khoan bi khoa' });
+    userIdToUuid[user._id.toString()] = uuid;
     const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, username: user.username, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Lay trang thai game hien tai (plugin poll de dong bo)
+// Tráº¡ng thÃ¡i game hiá»n táº¡i (plugin poll)
 app.get('/api/game/state', (req, res) => {
   const s = games.taixiu;
-  res.json({
-    phase:      s.phase,
-    countdown:  s.countdown,
-    result:     s.result,
-    sessionId:  s.sessionId,
-    serverTime: Date.now()
-  });
+  res.json({ phase: s.phase, countdown: s.countdown, result: s.result, sessionId: s.sessionId, serverTime: Date.now() });
 });
 
-// Dat cuoc tu plugin (khong qua socket)
+// Äáº·t cÆ°á»£c tá»« plugin (khÃ´ng qua socket)
 app.post('/api/game/bet', async (req, res) => {
   try {
     const { uuid, choice, amount } = req.body;
@@ -374,7 +374,7 @@ app.post('/api/game/bet', async (req, res) => {
     const s = games.taixiu;
     if (s.phase !== 'BETTING') return res.status(400).json({ error: 'Phien cuoc da dong', phase: s.phase, countdown: s.countdown });
     const user = await User.findOne({ uuid });
-    if (!user)                   return res.status(404).json({ error: 'Khong tim thay tai khoan' });
+    if (!user)                    return res.status(404).json({ error: 'Khong tim thay tai khoan' });
     if (user.status === 'banned') return res.status(403).json({ error: 'Tai khoan bi khoa' });
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0)  return res.status(400).json({ error: 'So tien khong hop le' });
@@ -384,10 +384,10 @@ app.post('/api/game/bet', async (req, res) => {
     await user.save();
 
     const uid = user._id.toString();
+    userIdToUuid[uid] = uuid;
     if (!s.bets[uid]) s.bets[uid] = {};
     s.bets[uid][choice] = (s.bets[uid][choice] || 0) + amt;
 
-    // Notify web clients
     io.to(uid).emit('balance_update', { balance: user.balance });
     io.to(uid).emit('bet_accepted',   { balance: user.balance });
 
@@ -395,7 +395,7 @@ app.post('/api/game/bet', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Dong bo so du len web (plugin push)
+// Äá»ng bá» sá» dÆ° tá»« plugin lÃªn web
 app.post('/api/game/update-balance', async (req, res) => {
   try {
     const { uuid, username, balance } = req.body;
@@ -406,91 +406,34 @@ app.post('/api/game/update-balance', async (req, res) => {
       const exists = await User.findOne({ username: finalUsername });
       if (exists) finalUsername += '_' + uuid.substring(0, 6);
       user = await User.create({
-        username: finalUsername, uuid,
-        balance: balance || 0,
-        isGameAccount: true,
-        password: await bcrypt.hash(uuid, 10)
+        username: finalUsername, uuid, balance: balance || 0,
+        isGameAccount: true, password: await bcrypt.hash(uuid, 10)
       });
     } else {
-      // Chi cap nhat neu khac biet de tranh ghi de sai
       if (typeof balance === 'number' && balance !== user.balance) {
         user.balance = balance;
         await user.save();
         io.to(user._id.toString()).emit('balance_update', { balance: user.balance });
       }
     }
+    userIdToUuid[user._id.toString()] = uuid;
     res.json({ success: true, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Lay so du tu web (plugin pull)
+// Láº¥y sá» dÆ° tá»« web (plugin pull)
 app.get('/api/game/sync', async (req, res) => {
   try {
     const { uuid } = req.query;
     if (!uuid) return res.status(400).json({ error: 'Missing uuid' });
     const user = await User.findOne({ uuid });
     if (!user) return res.json({ balance: 0, exists: false });
+    userIdToUuid[user._id.toString()] = uuid;
     res.json({ balance: user.balance, username: user.username, exists: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ==================== LEADERBOARD API ====================
-app.get('/api/leaderboard', async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 10;
-    const users = await User.find({ isAdmin: false, status: 'active' })
-      .select('username balance totalWin totalLoss totalBets uuid isGameAccount')
-      .sort({ balance: -1 })
-      .limit(limit);
-    res.json(users.map((u, i) => ({
-      rank:          i + 1,
-      username:      u.username,
-      balance:       u.balance,
-      totalWin:      u.totalWin,
-      totalLoss:     u.totalLoss,
-      totalBets:     u.totalBets,
-      isGameAccount: u.isGameAccount,
-      uuid:          u.uuid
-    })));
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// Lay leaderboard cho plugin (theo uuid, tra ve rank)
-app.get('/api/leaderboard/game', async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 10;
-    const users = await User.find({ isAdmin: false, isGameAccount: true, status: 'active' })
-      .select('username balance totalWin totalBets uuid')
-      .sort({ balance: -1 })
-      .limit(limit);
-    res.json(users.map((u, i) => ({
-      rank:      i + 1,
-      username:  u.username,
-      balance:   u.balance,
-      totalWin:  u.totalWin,
-      totalBets: u.totalBets,
-      uuid:      u.uuid
-    })));
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// Lay rank cua 1 player
-app.get('/api/leaderboard/rank', async (req, res) => {
-  try {
-    const { uuid } = req.query;
-    if (!uuid) return res.status(400).json({ error: 'Missing uuid' });
-    const user = await User.findOne({ uuid });
-    if (!user) return res.json({ rank: -1 });
-    const rank = await User.countDocuments({
-      isAdmin: false, status: 'active',
-      balance: { $gt: user.balance }
-    }) + 1;
-    res.json({ rank, balance: user.balance, username: user.username });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-// ==================== BET HISTORY API ====================
-// Lich su cuoc theo uuid (cho plugin)
+// Lá»ch sá»­ cÆ°á»£c theo uuid
 app.get('/api/game/bet-history', async (req, res) => {
   try {
     const { uuid } = req.query;
@@ -499,22 +442,13 @@ app.get('/api/game/bet-history', async (req, res) => {
     const user = await User.findOne({ uuid });
     if (!user) return res.json([]);
     const bets = await Bet.find({ userId: user._id })
-      .sort({ createdAt: -1 })
-      .limit(limit)
+      .sort({ createdAt: -1 }).limit(limit)
       .select('gameType betChoice betAmount payout isWin createdAt sessionId');
     res.json(bets);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Lich su cuoc (web - auth)
-app.get('/api/history/:gt', auth, async (req, res) => {
-  const bets = await Bet.find({ userId: req.user.id, gameType: req.params.gt })
-    .sort({ createdAt: -1 }).limit(30);
-  res.json(bets);
-});
-
-// ==================== TRANSACTION HISTORY API ====================
-// Lich su nap rut theo uuid (cho plugin)
+// Lá»ch sá»­ náº¡p/rÃºt theo uuid
 app.get('/api/game/transactions', async (req, res) => {
   try {
     const { uuid } = req.query;
@@ -523,10 +457,132 @@ app.get('/api/game/transactions', async (req, res) => {
     const user = await User.findOne({ uuid });
     if (!user) return res.json([]);
     const txs = await Transaction.find({ userId: user._id })
-      .sort({ createdAt: -1 })
-      .limit(limit)
+      .sort({ createdAt: -1 }).limit(limit)
       .select('type amount note createdAt');
     res.json(txs);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==================== PLUGIN-SPECIFIC ENDPOINTS ====================
+
+/**
+ * GET /api/plugin/notifications?uuid=<tÃªn>
+ * Plugin poll endpoint â tráº£ vá» hÃ ng Äá»£i thÃ´ng bÃ¡o rá»i xÃ³a ngay.
+ * ThÃ´ng bÃ¡o gá»m: bet_result, balance_update
+ */
+app.get('/api/plugin/notifications', async (req, res) => {
+  try {
+    const { uuid } = req.query;
+    if (!uuid) return res.status(400).json({ error: 'Missing uuid' });
+    const notifs = pluginNotifQueue[uuid] || [];
+    pluginNotifQueue[uuid] = [];   // xÃ³a sau khi ÄÃ£ Äá»c
+    res.json(notifs);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/**
+ * POST /api/plugin/heartbeat
+ * Plugin gá»i khi player join/leave Äá» backend cáº­p nháº­t tráº¡ng thÃ¡i online.
+ * Body: { uuid, username, online: true|false }
+ */
+app.post('/api/plugin/heartbeat', async (req, res) => {
+  try {
+    const { uuid, username, online } = req.body;
+    if (!uuid) return res.status(400).json({ error: 'Missing uuid' });
+    const user = await User.findOneAndUpdate(
+      { uuid },
+      { isOnline: !!online, lastSeen: new Date() },
+      { new: true }
+    );
+    // CÅ©ng cáº­p nháº­t mapping náº¿u cÃ³ user
+    if (user) userIdToUuid[user._id.toString()] = uuid;
+    // Notify admin panel qua socket
+    io.emit('plugin:player_status', { uuid, username, online: !!online });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/**
+ * GET /api/plugin/online-players
+ * Tráº£ vá» danh sÃ¡ch player Minecraft Äang online (theo heartbeat).
+ * Admin dÃ¹ng Äá» xem ai Äang chÆ¡i ingame.
+ */
+app.get('/api/plugin/online-players', async (req, res) => {
+  try {
+    const cutoff = new Date(Date.now() - 60 * 1000); // online náº¿u heartbeat trong 60s
+    const players = await User.find({
+      isGameAccount: true,
+      isOnline: true,
+      lastSeen: { $gte: cutoff },
+    }).select('username uuid balance lastSeen');
+    res.json(players);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+/**
+ * GET /api/plugin/push-notify
+ * Admin gá»­i thÃ´ng bÃ¡o tá»i má»t player cá»¥ thá» (hoáº·c broadcast táº¥t cáº£).
+ * POST body: { uuid?, message, broadcast? }
+ * Plugin poll /api/plugin/notifications sáº½ nháº­n ÄÆ°á»£c.
+ */
+app.post('/api/plugin/push-notify', adminAuth, async (req, res) => {
+  try {
+    const { uuid, message, broadcast } = req.body;
+    if (!message) return res.status(400).json({ error: 'Missing message' });
+    if (broadcast) {
+      // Gá»­i cho táº¥t cáº£ player Äang online
+      const cutoff = new Date(Date.now() - 60 * 1000);
+      const players = await User.find({ isGameAccount: true, isOnline: true, lastSeen: { $gte: cutoff } });
+      for (const p of players) {
+        if (p.uuid) pushNotif(p.uuid, { type: 'admin_message', message });
+      }
+      io.emit('admin:broadcast', { message });
+      return res.json({ success: true, count: players.length });
+    }
+    if (!uuid) return res.status(400).json({ error: 'Missing uuid or broadcast' });
+    pushNotif(uuid, { type: 'admin_message', message });
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ==================== LEADERBOARD ====================
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const users = await User.find({ isAdmin: false, status: 'active' })
+      .select('username balance totalWin totalLoss totalBets uuid isGameAccount')
+      .sort({ balance: -1 }).limit(limit);
+    res.json(users.map((u, i) => ({
+      rank: i + 1, username: u.username, balance: u.balance,
+      totalWin: u.totalWin, totalLoss: u.totalLoss, totalBets: u.totalBets,
+      isGameAccount: u.isGameAccount, uuid: u.uuid
+    })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/leaderboard/game', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const users = await User.find({ isAdmin: false, isGameAccount: true, status: 'active' })
+      .select('username balance totalWin totalBets uuid')
+      .sort({ balance: -1 }).limit(limit);
+    res.json(users.map((u, i) => ({
+      rank: i + 1, username: u.username, balance: u.balance,
+      totalWin: u.totalWin, totalBets: u.totalBets, uuid: u.uuid
+    })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/leaderboard/rank', async (req, res) => {
+  try {
+    const { uuid } = req.query;
+    if (!uuid) return res.status(400).json({ error: 'Missing uuid' });
+    const user = await User.findOne({ uuid });
+    if (!user) return res.json({ rank: -1 });
+    const rank = await User.countDocuments({
+      isAdmin: false, status: 'active', balance: { $gt: user.balance }
+    }) + 1;
+    res.json({ rank, balance: user.balance, username: user.username });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -574,11 +630,18 @@ app.get('/api/me', auth, async (req, res) => {
   res.json(user);
 });
 
+// ==================== HISTORY (web auth) ====================
+app.get('/api/history/:gt', auth, async (req, res) => {
+  const bets = await Bet.find({ userId: req.user.id, gameType: req.params.gt })
+    .sort({ createdAt: -1 }).limit(30);
+  res.json(bets);
+});
+
 // ==================== BANNER ====================
 app.get('/api/banners', async (req, res) => {
   try {
     const [depAgg, wdAgg, custom] = await Promise.all([
-      Transaction.aggregate([{ $match: { type: 'deposit' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+      Transaction.aggregate([{ $match: { type: 'deposit' } },  { $group: { _id: null, total: { $sum: '$amount' } } }]),
       Transaction.aggregate([{ $match: { type: 'withdraw' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
       Banner.find({})
     ]);
@@ -597,8 +660,7 @@ app.post('/api/admin/banner', adminAuth, async (req, res) => {
 
 app.delete('/api/admin/banner/:key', adminAuth, async (req, res) => {
   await Banner.deleteOne({ key: req.params.key });
-  io.emit('banner_update', {});
-  res.json({ success: true });
+  io.emit('banner_update', {}); res.json({ success: true });
 });
 
 // ==================== DEPOSIT REQUESTS ====================
@@ -619,8 +681,7 @@ app.post('/api/deposit-request', auth, async (req, res) => {
 });
 
 app.get('/api/my-deposit-requests', auth, async (req, res) => {
-  const reqs = await DepositRequest.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(10);
-  res.json(reqs);
+  res.json(await DepositRequest.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(10));
 });
 
 app.get('/api/admin/deposit-requests', adminAuth, async (req, res) => {
@@ -631,7 +692,7 @@ app.post('/api/admin/deposit-request/approve', adminAuth, async (req, res) => {
   try {
     const { requestId, adminNote } = req.body;
     const dr = await DepositRequest.findById(requestId);
-    if (!dr)                    return res.status(404).json({ error: 'Not found' });
+    if (!dr)                     return res.status(404).json({ error: 'Not found' });
     if (dr.status !== 'pending') return res.status(400).json({ error: 'Da xu ly' });
     dr.status = 'approved'; dr.adminNote = adminNote || 'Da duyet';
     dr.reviewedBy = req.user.username; dr.reviewedAt = new Date();
@@ -645,6 +706,14 @@ app.post('/api/admin/deposit-request/approve', adminAuth, async (req, res) => {
     io.to(dr.userId.toString()).emit('balance_update',   { balance: user.balance });
     io.to(dr.userId.toString()).emit('deposit_approved', { amount: dr.amount, balance: user.balance });
     io.emit('banner_update', {});
+    // Notify plugin
+    if (user?.uuid) {
+      pushNotif(user.uuid, { type: 'balance_update', balance: user.balance });
+      pushNotif(user.uuid, {
+        type: 'admin_message',
+        message: `Â§a[Casino] Â§fYÃªu cáº§u náº¡p Â§e${dr.amount.toLocaleString('vi-VN')}Â§f xu ÄÃ£ ÄÆ°á»£c DUYá»T! Sá» dÆ° má»i: Â§a${user.balance.toLocaleString('vi-VN')}Â§f xu`
+      });
+    }
     res.json({ success: true, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -658,6 +727,14 @@ app.post('/api/admin/deposit-request/reject', adminAuth, async (req, res) => {
     dr.reviewedBy = req.user.username; dr.reviewedAt = new Date();
     await dr.save();
     io.to(dr.userId.toString()).emit('deposit_rejected', { adminNote: dr.adminNote });
+    // Notify plugin
+    const user = await User.findById(dr.userId);
+    if (user?.uuid) {
+      pushNotif(user.uuid, {
+        type: 'admin_message',
+        message: `Â§c[Casino] Â§fYÃªu cáº§u náº¡p tiá»n bá» Tá»ª CHá»I. LÃ½ do: Â§e${dr.adminNote}`
+      });
+    }
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -667,12 +744,12 @@ app.post('/api/withdraw-request', auth, async (req, res) => {
   try {
     const { amount, bankName, bankAccount } = req.body;
     const amt = Number(amount);
-    if (!amt || amt < 50000)       return res.status(400).json({ error: 'Toi thieu 50,000d' });
-    if (!bankName || !bankAccount)  return res.status(400).json({ error: 'Thieu thong tin ngan hang' });
+    if (!amt || amt < 50000)      return res.status(400).json({ error: 'Toi thieu 50,000d' });
+    if (!bankName || !bankAccount) return res.status(400).json({ error: 'Thieu thong tin ngan hang' });
     const user = await User.findById(req.user.id);
-    if (!user)                      return res.status(404).json({ error: 'Khong tim thay' });
-    if (user.status === 'banned')   return res.status(403).json({ error: 'Bi khoa' });
-    if (user.balance < amt)         return res.status(400).json({ error: 'So du khong du' });
+    if (!user)                     return res.status(404).json({ error: 'Khong tim thay' });
+    if (user.status === 'banned')  return res.status(403).json({ error: 'Bi khoa' });
+    if (user.balance < amt)        return res.status(400).json({ error: 'So du khong du' });
     const pending = await WithdrawRequest.countDocuments({ userId: req.user.id, status: 'pending' });
     if (pending >= 2) return res.status(400).json({ error: 'Co yeu cau cho xu ly' });
     const wr = await WithdrawRequest.create({
@@ -709,8 +786,15 @@ app.post('/api/admin/withdraw-request/approve', adminAuth, async (req, res) => {
       note: `Rut qua ${wr.bankName} - ${adminNote || 'Da duyet'}`, adminId: req.user.id
     });
     io.to(wr.userId.toString()).emit('balance_update',    { balance: user.balance });
-    io.to(wr.userId.toString()).emit('withdraw_approved', { amount: wr.amount, balance: user.balance, bankName: wr.bankName });
+    io.to(wr.userId.toString()).emit('withdraw_approved', { amount: wr.amount, balance: user.balance });
     io.emit('banner_update', {});
+    if (user?.uuid) {
+      pushNotif(user.uuid, { type: 'balance_update', balance: user.balance });
+      pushNotif(user.uuid, {
+        type: 'admin_message',
+        message: `Â§a[Casino] Â§fYÃªu cáº§u rÃºt Â§e${wr.amount.toLocaleString('vi-VN')}Â§f xu ÄÃ£ ÄÆ°á»£c DUYá»T qua Â§b${wr.bankName}Â§f!`
+      });
+    }
     res.json({ success: true, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -724,6 +808,13 @@ app.post('/api/admin/withdraw-request/reject', adminAuth, async (req, res) => {
     wr.reviewedBy = req.user.username; wr.reviewedAt = new Date();
     await wr.save();
     io.to(wr.userId.toString()).emit('withdraw_rejected', { adminNote: wr.adminNote });
+    const user = await User.findById(wr.userId);
+    if (user?.uuid) {
+      pushNotif(user.uuid, {
+        type: 'admin_message',
+        message: `Â§c[Casino] Â§fYÃªu cáº§u rÃºt tiá»n bá» Tá»ª CHá»I. LÃ½ do: Â§e${wr.adminNote}`
+      });
+    }
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -734,23 +825,21 @@ app.get('/api/admin/users', adminAuth, async (req, res) => {
 });
 
 app.get('/api/admin/stats', adminAuth, async (req, res) => {
-  const [userCount, depAgg, wdAgg, sessions, bets, pendingCount] = await Promise.all([
+  const [userCount, depAgg, wdAgg, sessions, bets, pendingCount, onlineCount] = await Promise.all([
     User.countDocuments({ isAdmin: false }),
     Transaction.aggregate([{ $match: { type: 'deposit' } },  { $group: { _id: null, total: { $sum: '$amount' } } }]),
     Transaction.aggregate([{ $match: { type: 'withdraw' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
     GameSession.find({}).sort({ createdAt: -1 }).limit(50),
     Bet.aggregate([{ $group: { _id: null, totalBet: { $sum: '$betAmount' }, totalPayout: { $sum: '$payout' }, count: { $sum: 1 } } }]),
-    DepositRequest.countDocuments({ status: 'pending' })
+    DepositRequest.countDocuments({ status: 'pending' }),
+    User.countDocuments({ isOnline: true, lastSeen: { $gte: new Date(Date.now() - 60000) } }),
   ]);
   const bs = bets[0] || { totalBet: 0, totalPayout: 0, count: 0 };
   res.json({
-    userCount,
-    totalDeposited: depAgg[0]?.total || 0,
-    totalWithdrawn: wdAgg[0]?.total || 0,
-    houseProfit: bs.totalBet - bs.totalPayout,
-    betCount: bs.count,
-    pendingDepositCount: pendingCount,
-    recentSessions: sessions
+    userCount, totalDeposited: depAgg[0]?.total || 0, totalWithdrawn: wdAgg[0]?.total || 0,
+    houseProfit: bs.totalBet - bs.totalPayout, betCount: bs.count,
+    pendingDepositCount: pendingCount, recentSessions: sessions,
+    onlineMinecraftPlayers: onlineCount,   // sá» player Minecraft Äang online
   });
 });
 
@@ -764,6 +853,7 @@ app.post('/api/admin/deposit', adminAuth, async (req, res) => {
     await Transaction.create({ userId, username: user.username, uuid: user.uuid, type: 'deposit', amount, note, adminId: req.user.id });
     io.to(userId.toString()).emit('balance_update', { balance: user.balance });
     io.emit('banner_update', {});
+    if (user.uuid) pushNotif(user.uuid, { type: 'balance_update', balance: user.balance });
     res.json({ success: true, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -776,6 +866,7 @@ app.post('/api/admin/withdraw', adminAuth, async (req, res) => {
     user.balance -= amount; await user.save();
     await Transaction.create({ userId, username: user.username, uuid: user.uuid, type: 'withdraw', amount, note, adminId: req.user.id });
     io.to(userId.toString()).emit('balance_update', { balance: user.balance });
+    if (user.uuid) pushNotif(user.uuid, { type: 'balance_update', balance: user.balance });
     res.json({ success: true, balance: user.balance });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -847,4 +938,4 @@ app.post('/api/slots/spin', auth, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server on :${PORT}`));
+server.listen(PORT, () => console.log(`ð Server running on port ${PORT}`));
